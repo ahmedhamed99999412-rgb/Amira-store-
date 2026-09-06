@@ -63,3 +63,4 @@ server.log
 /database/full-data-dump-repaired.json
 
 .vercel
+.env*

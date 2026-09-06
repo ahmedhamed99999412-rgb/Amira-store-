@@ -14,10 +14,6 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      DATABASE_URL: file:./ci.db
-      ADMIN_PASSWORD: ci-only-password
-      ALLOW_DESTRUCTIVE_SEED: 'true'
 
     steps:
       - name: Checkout
@@ -30,12 +26,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-
-      - name: Prepare CI database
-        run: npm run db:push
-
-      - name: Seed CI database
-        run: npm run db:seed
 
       - name: Typecheck
         run: npm run typecheck
