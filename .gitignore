@@ -61,3 +61,5 @@ server.log
 /database/custom-repaired.db
 /database/full-data-dump.json
 /database/full-data-dump-repaired.json
+
+.vercel

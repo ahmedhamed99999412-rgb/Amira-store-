@@ -95,6 +95,12 @@ async function main() {
   }
   const dump: DataDump = JSON.parse(fs.readFileSync(DUMP_FILE, 'utf-8'));
 
+  const validUserId = async (userId: string | null | undefined) => {
+    if (!userId) return null;
+    const user = await db.user.findUnique({ where: { id: userId }, select: { id: true } });
+    return user?.id ?? null;
+  };
+
   // ---- 1. Create Admin User ----
   console.log('👤 Creating admin user...');
   const passwordHash = await bcrypt.hash(adminPassword, 10);
@@ -359,7 +365,7 @@ async function main() {
       create: {
         id: r.id,
         productId: r.productId,
-        userId: r.userId || null,
+        userId: await validUserId(r.userId),
         guestName: r.guestName,
         guestPhone: r.guestPhone || null,
         rating: r.rating,
@@ -382,7 +388,7 @@ async function main() {
         id: o.id,
         orderNumber: o.orderNumber,
         idempotencyKey: o.idempotencyKey || null,
-        userId: o.userId || null,
+        userId: await validUserId(o.userId),
         guestName: o.guestName,
         guestPhone: o.guestPhone,
         guestAddress: o.guestAddress,
@@ -433,7 +439,7 @@ async function main() {
       update: {},
       create: {
         id: c.id,
-        userId: c.userId || null,
+        userId: await validUserId(c.userId),
         guestId: c.guestId || null,
         createdAt: safeDateOrNow(c.createdAt),
         updatedAt: safeDateOrNow(c.updatedAt),
@@ -465,7 +471,7 @@ async function main() {
       update: {},
       create: {
         id: w.id,
-        userId: w.userId || null,
+        userId: await validUserId(w.userId),
         guestId: w.guestId || null,
         createdAt: safeDateOrNow(w.createdAt),
         updatedAt: safeDateOrNow(w.updatedAt),
@@ -532,12 +538,14 @@ async function main() {
 
   // ---- 11. Addresses ----
   for (const a of dump.address || []) {
+    const addressUserId = await validUserId(a.userId);
+    if (!addressUserId) continue;
     await db.address.upsert({
       where: { id: a.id },
       update: {},
       create: {
         id: a.id,
-        userId: a.userId,
+        userId: addressUserId,
         fullName: a.fullName,
         phone: a.phone,
         street: a.street,
