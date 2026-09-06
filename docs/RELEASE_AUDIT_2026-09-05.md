@@ -121,6 +121,19 @@ Local baseline and verification only. No GitHub, CI, Vercel, Neon, or production
 - Verification: Not performed; no provider credentials supplied.
 - Status: BLOCKED
 
+### BUG-009
+
+- Severity: HIGH
+- Area: GitHub authentication and repository push
+- Exact error: `Permission to ahmedhamed99999412-rgb/Amira-store-.git denied to engmohammedsalah1255-lgtm` (HTTP 403).
+- How reproduced: `git push -u origin main`.
+- Root cause: Git used credentials for an account without write access to the target repository; GitHub CLI initially had no authenticated session.
+- Impact: The verified local commit cannot yet be published to GitHub, so CI and downstream deployment gates cannot start.
+- Minimal fix: Complete GitHub browser/device login with the account that owns or can write to `ahmedhamed99999412-rgb/Amira-store-`, then retry the push.
+- Files changed: None by the failed push.
+- Verification: Pending `gh auth status`, successful push, and GitHub Actions result.
+- Status: BLOCKED
+
 ## Gate Results
 
 | Gate | Result | Evidence |
@@ -131,11 +144,11 @@ Local baseline and verification only. No GitHub, CI, Vercel, Neon, or production
 | Build | PASS | `npm run build` |
 | Runtime | PASS | `/ar`, `/en/shop`, `/api/products`, `/api/auth/me` returned HTTP 200 |
 | Full seed | PASS | Local upsert-only seed completed successfully |
-| GitHub / CI | BLOCKED | No Git repository metadata available |
+| GitHub / CI | BLOCKED | GitHub authentication/write permission is unresolved |
 | PostgreSQL / Neon | BLOCKED | No production credentials or target confirmation supplied |
 | Vercel / Production | BLOCKED | No deployment performed |
 | AI production readiness | BLOCKED | Provider is documented as internal/environment-specific |
 
 ## Current Status
 
-Production release is not approved. Local code gates pass, while data restoration and all external deployment gates remain blocked and explicitly recorded above.
+Production release is not approved. Local code gates pass, while GitHub authentication, AI provider verification, Neon, Vercel, CI, preview, and production gates remain blocked and explicitly recorded above.
