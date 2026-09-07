@@ -80,6 +80,7 @@ export type FlatCategory = {
 };
 
 type NewImage = { base64Data: string; mimeType: string; fileSize: number; preview: string };
+type VariantMode = 'size' | 'color' | 'both';
 
 function readFileAsBase64(file: File): Promise<{ base64Data: string; mimeType: string; fileSize: number; preview: string }> {
   return new Promise((resolve, reject) => {
@@ -135,6 +136,12 @@ export function ProductForm({
       ? product.variants
       : [{ size: '', color: '', colorHex: '#000000', stock: '0', sku: '', priceAdjustment: '' }]
   );
+  const [variantMode, setVariantMode] = useState<VariantMode>(() => {
+    const initialVariants = product?.variants || [];
+    const hasSize = initialVariants.some((variant) => variant.size.trim().length > 0);
+    const hasColor = initialVariants.some((variant) => variant.color.trim().length > 0);
+    return hasSize && hasColor ? 'both' : hasColor ? 'color' : 'size';
+  });
 
   const [existingImages, setExistingImages] = useState(
     product?.images || []
@@ -312,6 +319,7 @@ export function ProductForm({
         setSuggestingVariants(false);
         return;
       }
+      setVariantMode(data.type === 'colors' ? 'color' : data.type === 'both' ? 'both' : 'size');
       if (data.type === 'sizes') {
         for (const size of data.sizes) {
           newVariants.push({ size, color: '', colorHex: '#000000', stock: '0', sku: '', priceAdjustment: '' });
@@ -675,6 +683,38 @@ export function ProductForm({
             {t('addVariant')}
           </Button>
 
+          <div className="mb-4 rounded-lg border border-border bg-muted/20 p-3">
+            <div className="mb-2 text-xs font-medium text-brand-charcoal">
+              {locale === 'ar' ? 'نوع المتغير' : 'Variant type'}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {([
+                { value: 'size' as const, label: locale === 'ar' ? 'مقاس / حجم' : 'Size / Volume', icon: Package },
+                { value: 'color' as const, label: locale === 'ar' ? 'لون' : 'Color', icon: Tag },
+                { value: 'both' as const, label: locale === 'ar' ? 'مقاس + لون' : 'Size + Color', icon: Boxes },
+              ]).map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setVariantMode(value)}
+                  className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition-colors ${
+                    variantMode === value
+                      ? 'border-brand-charcoal bg-brand-charcoal text-white'
+                      : 'border-border bg-white text-muted-foreground hover:border-brand-mauve hover:text-brand-charcoal'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              {locale === 'ar'
+                ? 'اختر نوعًا واحدًا لتظهر لك الحقول المطلوبة فقط.'
+                : 'Choose one type to show only the fields you need.'}
+            </p>
+          </div>
+
           <div className="space-y-3">
             {variants.map((v, idx) => (
               <div
@@ -726,41 +766,42 @@ export function ProductForm({
                   </div>
                 </div>
 
-                {/* Simplified: only 3 fields (size, color, stock) */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">
-                      {locale === 'ar' ? 'المقاس / الحجم' : 'Size / Volume'}
-                    </Label>
-                    <Input
-                      value={v.size}
-                      onChange={(e) => updateVariant(idx, 'size', e.target.value)}
-                      placeholder={locale === 'ar' ? 'M / 50ml' : 'M / 50ml'}
-                      className="h-9"
-                      dir="ltr"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">
-                      {t('color')} <span className="text-muted-foreground">({locale === 'ar' ? 'اختياري' : 'optional'})</span>
-                    </Label>
-                    <div className="flex items-center gap-2">
+                <div className={`grid grid-cols-1 gap-3 ${variantMode === 'both' ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+                  {(variantMode === 'size' || variantMode === 'both') && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">
+                        {locale === 'ar' ? 'المقاس / الحجم' : 'Size / Volume'}
+                      </Label>
                       <Input
-                        value={v.color}
-                        onChange={(e) => updateVariant(idx, 'color', e.target.value)}
-                        placeholder={locale === 'ar' ? 'وردي' : 'Pink'}
-                        className="h-9 flex-1"
-                      />
-                      <input
-                        type="color"
-                        value={v.colorHex || '#000000'}
-                        onChange={(e) => updateVariant(idx, 'colorHex', e.target.value)}
-                        className="h-9 w-9 rounded-md border border-input cursor-pointer shrink-0"
-                        aria-label={t('colorHex')}
+                        value={v.size}
+                        onChange={(e) => updateVariant(idx, 'size', e.target.value)}
+                        placeholder={locale === 'ar' ? 'M / 50ml' : 'M / 50ml'}
+                        className="h-9"
+                        dir="ltr"
                       />
                     </div>
-                  </div>
+                  )}
+
+                  {(variantMode === 'color' || variantMode === 'both') && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('color')}</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={v.color}
+                          onChange={(e) => updateVariant(idx, 'color', e.target.value)}
+                          placeholder={locale === 'ar' ? 'وردي' : 'Pink'}
+                          className="h-9 flex-1"
+                        />
+                        <input
+                          type="color"
+                          value={v.colorHex || '#000000'}
+                          onChange={(e) => updateVariant(idx, 'colorHex', e.target.value)}
+                          className="h-9 w-9 rounded-md border border-input cursor-pointer shrink-0"
+                          aria-label={t('colorHex')}
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">{t('stock')} *</Label>
