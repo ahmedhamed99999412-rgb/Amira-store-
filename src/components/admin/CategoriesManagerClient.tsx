@@ -70,6 +70,15 @@ function flatten(cats: CategoryNode[], depth = 0, out: FlatCategory[] = [], pare
   return out;
 }
 
+function createSlug(value: string) {
+  const slug = value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return slug || `category-${Date.now().toString(36)}`;
+}
+
 function readFileAsBase64(file: File): Promise<{ base64Data: string; mimeType: string; fileSize: number; preview: string }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -171,7 +180,7 @@ export function CategoriesManagerClient({ locale }: { locale: string }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.nameAr || !form.nameEn || !form.slug) {
+    if (!form.nameAr || !form.nameEn) {
       toast.error(locale === 'ar' ? 'يرجى ملء الحقول المطلوبة' : 'Please fill required fields');
       return;
     }
@@ -180,7 +189,7 @@ export function CategoriesManagerClient({ locale }: { locale: string }) {
       const payload: Record<string, unknown> = {
         nameAr: form.nameAr,
         nameEn: form.nameEn,
-        slug: form.slug,
+        slug: editing ? form.slug : createSlug(form.nameEn),
         parentId: form.parentId || null,
         isActive: form.isActive,
       };
@@ -398,16 +407,6 @@ export function CategoriesManagerClient({ locale }: { locale: string }) {
                   required
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('slug')} *</Label>
-              <Input
-                value={form.slug}
-                onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                dir="ltr"
-                placeholder="women-dresses"
-                required
-              />
             </div>
             <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
