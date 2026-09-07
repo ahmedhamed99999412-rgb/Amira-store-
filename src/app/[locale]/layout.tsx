@@ -103,27 +103,26 @@ export default async function LocaleLayout({
   const lang = locale;
 
   return (
-    <div
-      lang={lang}
-      dir={dir}
-      suppressHydrationWarning
-      className={`${inter.variable} ${playfair.variable} ${tajawal.variable} ${amiri.variable} antialiased bg-background text-foreground min-h-screen flex flex-col`}
-      style={{
-        fontFamily:
-          locale === 'ar'
-            ? 'var(--font-sans-ar), system-ui, sans-serif'
-            : 'var(--font-sans-en), system-ui, sans-serif',
-      }}
-    >
-      <NextIntlClientProvider>
-        <AuthProvider>
-          <ServerStateSync locale={locale} />
-          {children}
-          <CartDrawer locale={locale} />
-          <ChatWidget locale={locale} />
-        </AuthProvider>
-      </NextIntlClientProvider>
-      <Toaster position={locale === 'ar' ? 'bottom-left' : 'bottom-right'} />
-    </div>
+    <html lang={lang} dir={dir} suppressHydrationWarning>
+      <body
+        className={`${inter.variable} ${playfair.variable} ${tajawal.variable} ${amiri.variable} antialiased bg-background text-foreground min-h-screen flex flex-col`}
+        style={{
+          fontFamily:
+            locale === 'ar'
+              ? 'var(--font-sans-ar), system-ui, sans-serif'
+              : 'var(--font-sans-en), system-ui, sans-serif',
+        }}
+      >
+        <NextIntlClientProvider>
+          <AuthProvider>
+            <ServerStateSync locale={locale} />
+            {children}
+            <CartDrawer locale={locale} />
+            <ChatWidget locale={locale} />
+          </AuthProvider>
+        </NextIntlClientProvider>
+        <Toaster position={locale === 'ar' ? 'bottom-left' : 'bottom-right'} />
+      </body>
+    </html>
   );
 }
