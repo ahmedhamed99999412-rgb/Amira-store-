@@ -18,8 +18,8 @@
     "currency": "ج.م"
   },
   "announcement": {
-    "shipping": "شحن مجاني للطلبات فوق 1000 ج.م",
-    "returns": "إرجاع خلال 30 يوم",
+    "shipping": "تفاصيل الشحن تؤكد بعد إتمام الطلب",
+    "returns": "طلبات الإرجاع تتم عبر خدمة العملاء",
     "authentic": "منتجات أصلية 100%",
     "language": "English",
     "currency_label": "العملة"
@@ -79,17 +79,13 @@
     "kidsCta": "تسوق للأطفال"
   },
   "trending": {
-    "title": "الأكثر رواجاً الآن",
-    "subtitle": "اكتشف أحدث صيحات الموضة",
+    "title": "منتجات مختارة",
+    "subtitle": "استكشف منتجات مختارة من تشكيلتنا",
     "viewAll": "عرض الكل"
   },
   "service": {
-    "freeShipping": "شحن مجاني",
-    "freeShippingDesc": "للطلبات فوق 1000 ج.م",
     "securePayment": "دفع آمن",
     "securePaymentDesc": "دفع عند الاستلام",
-    "returns": "إرجاع سهل",
-    "returnsDesc": "خلال 30 يوماً",
     "support": "دعم 24/7",
     "supportDesc": "خدمة عملاء متميزة"
   },
@@ -132,8 +128,8 @@
     "item": "منتج",
     "freeShipping": "مجاني",
     "shippingManual": "يتم تحديده بعد الطلب",
-    "freeShippingUnlocked": "🎉 حصلت على شحن مجاني!",
-    "freeShippingProgress": "أضف {amount} ج.م للحصول على شحن مجاني"
+    "freeShippingUnlocked": "",
+    "freeShippingProgress": ""
   },
   "wishlist": {
     "title": "قائمة المفضلة",

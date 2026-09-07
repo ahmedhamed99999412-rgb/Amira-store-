@@ -713,30 +713,8 @@ const PRODUCTS: SeedProduct[] = [
   },
 ];
 
-// Reviews (21 total - realistic Arabic + English)
-const REVIEWS = [
-  { slug: 'floral-midi-dress', rating: 5, name: 'سارة محمد', comment: 'فستان رائع! القماش ممتاز والتصميم أنيق جداً. أنصح به بشدة' },
-  { slug: 'floral-midi-dress', rating: 4, name: 'نورهان أحمد', comment: 'جميل جداً بس المقاس M كان أكبر شوية من المتوقع' },
-  { slug: 'floral-midi-dress', rating: 5, name: 'Mona S.', comment: 'Beautiful dress, perfect for summer! Quality is amazing' },
-  { slug: 'elegant-evening-dress', rating: 5, name: 'مريم خالد', comment: 'فستان سهرة فخم جداً! لبسته في فرح وكل الناس سألوني عنه' },
-  { slug: 'classic-white-blouse', rating: 5, name: 'دينا علي', comment: 'بلوزة عملية وأنيقة، بلبسها للشغل كتير' },
-  { slug: 'slim-fit-jeans', rating: 4, name: 'Hana K.', comment: 'Great jeans, very comfortable fit' },
-  { slug: 'elegant-heels', rating: 5, name: 'ميرنا حسن', comment: 'حذاء كعب مريح بشكل غير متوقع! ممتاز للمناسبات' },
-  { slug: 'leather-handbag', rating: 5, name: 'Sara T.', comment: 'Premium quality leather, spacious and elegant. Worth every pound!' },
-  { slug: 'classic-polo-shirt', rating: 5, name: 'أحمد محمد', comment: 'تيشيرت بولو ممتاز، القماش قطني 100% ومريح' },
-  { slug: 'mens-slim-jeans', rating: 4, name: 'Omar A.', comment: 'Good fit and quality, recommended' },
-  { slug: 'mens-sneakers', rating: 5, name: 'كريم سعد', comment: 'حذاء رياضي مريح جداً، بلبسه كل يوم' },
-  { slug: 'luxury-watch', rating: 5, name: 'Mahmoud I.', comment: 'Elegant watch, looks much more expensive than the price!' },
-  { slug: 'mens-leather-jacket', rating: 5, name: 'طارق فؤاد', comment: 'جاكيت جلد فخم، يستاهل كل جنيه' },
-  { slug: 'kids-summer-dress', rating: 5, name: 'منى رضا', comment: 'فستان بنتي عجبها جداً! القماش ناعم ومريح' },
-  { slug: 'baby-onesie-set', rating: 5, name: 'Rania M.', comment: 'Soft cotton, perfect for my newborn. Highly recommend' },
-  { slug: 'matte-lipstick', rating: 5, name: 'هبة فتحي', comment: 'أحمر شفاه ممتاز، ثابت ويدوم طويلاً' },
-  { slug: 'matte-lipstick', rating: 4, name: 'Laila S.', comment: 'Nice color payoff, slightly drying but good overall' },
-  { slug: 'facial-serum', rating: 5, name: 'د. سلمى', comment: 'سيروم ممتاز، بشرة أنصاف بعد شهر استعمال' },
-  { slug: 'eau-de-parfum-women', rating: 5, name: 'Yasmin A.', comment: 'Gorgeous fragrance, lasts all day. Compliments everywhere!' },
-  { slug: 'mens-cologne', rating: 5, name: 'فادي نسيم', comment: 'عطر رجالي قوي وثابت، استعملته مرة وحدة والكل سأل عنه' },
-  { slug: 'gold-necklace', rating: 5, name: 'Nour E.', comment: 'Beautiful necklace, looks elegant and premium' },
-];
+// Reviews are user-generated in production; the default seed creates none.
+const REVIEWS: { slug: string; rating: number; name: string; comment: string }[] = [];
 
 // Coupons (3 total)
 const COUPONS = [
@@ -837,8 +815,8 @@ async function main() {
       addressEn: 'Cairo, Egypt',
       currency: 'EGP',
       freeShippingEnabled: false,
-       announcementAr: 'شحن مجاني للطلبات فوق 1000 ج.م | إرجاع خلال 30 يوم | منتجات أصلية 100%',
-      announcementEn: 'Free shipping on orders over EGP 1,000 | 30-day returns | 100% Authentic Products',
+      announcementAr: 'اكتشف تشكيلتنا الجديدة',
+      announcementEn: 'Discover our latest collection',
       instagramUrl: 'https://www.instagram.com/',
       facebookUrl: 'https://www.facebook.com/',
     },

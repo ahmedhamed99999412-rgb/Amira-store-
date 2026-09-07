@@ -11,7 +11,21 @@ export async function getStoreSettings() {
   if (!settings) {
     throw new Error('Store settings not found. Run db:seed.');
   }
-  return settings;
+
+  const hasUnsupportedClaim = (value: string | null) =>
+    /free\s+(shipping|returns?)|30[\s-]?day|شحن\s+مجاني|استرجاع\s+(مجاني|خلال\s+30)/i.test(value || '');
+
+  return {
+    ...settings,
+    freeShippingEnabled: false,
+    freeShippingMinOrder: null,
+    announcementAr: hasUnsupportedClaim(settings.announcementAr)
+      ? 'اكتشف تشكيلتنا الجديدة'
+      : settings.announcementAr,
+    announcementEn: hasUnsupportedClaim(settings.announcementEn)
+      ? 'Discover our latest collection'
+      : settings.announcementEn,
+  };
 }
 
 // ============================================================

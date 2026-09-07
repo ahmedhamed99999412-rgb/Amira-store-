@@ -154,12 +154,12 @@ async function main() {
       addressAr: settings.addressAr || null,
       addressEn: settings.addressEn || null,
       currency: settings.currency || 'EGP',
-      freeShippingEnabled: settings.freeShippingEnabled ?? true,
-      freeShippingMinOrder: settings.freeShippingMinOrder ?? 1000,
-      freeShippingStart: safeDate(settings.freeShippingStart),
-      freeShippingEnd: safeDate(settings.freeShippingEnd),
-      announcementAr: settings.announcementAr || 'شحن مجاني للطلبات فوق 1000 ج.م',
-      announcementEn: settings.announcementEn || 'Free shipping on orders over EGP 1,000',
+      freeShippingEnabled: false,
+      freeShippingMinOrder: null,
+      freeShippingStart: null,
+      freeShippingEnd: null,
+      announcementAr: 'اكتشف تشكيلتنا الجديدة',
+      announcementEn: 'Discover our latest collection',
     },
   });
   console.log('  ✓ Store settings created');
@@ -357,26 +357,7 @@ async function main() {
   console.log(`  ✓ Restored ${dump.banner.length} banners`);
 
   // ---- 6. Reviews ----
-  console.log('⭐ Restoring reviews...');
-  for (const r of dump.review || []) {
-    await db.review.upsert({
-      where: { id: r.id },
-      update: {},
-      create: {
-        id: r.id,
-        productId: r.productId,
-        userId: await validUserId(r.userId),
-        guestName: r.guestName,
-        guestPhone: r.guestPhone || null,
-        rating: r.rating,
-        title: r.title || null,
-        comment: r.comment || null,
-        isApproved: r.isApproved,
-        createdAt: safeDateOrNow(r.createdAt),
-      },
-    });
-  }
-  console.log(`  ✓ Restored ${dump.review.length} reviews`);
+  console.log('⭐ Skipped dump reviews; production reviews must be user-generated.');
 
   // ---- 7. Orders ----
   console.log('🛒 Restoring orders...');

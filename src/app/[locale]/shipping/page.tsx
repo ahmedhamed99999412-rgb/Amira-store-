@@ -37,11 +37,9 @@ export default async function ShippingPage({
 
   const costInfo = isAr
     ? [
-        { title: 'شحن مجاني', desc: 'للطلبات فوق 1000 ج.م' },
-        { title: 'شحن محسوب', desc: 'يتم تحديده بعد تأكيد العنوان' },
+        { title: 'تكلفة الشحن', desc: 'يتم تحديدها بعد تأكيد العنوان' },
       ]
     : [
-        { title: 'Free Shipping', desc: 'On orders over EGP 1,000' },
         { title: 'Calculated Shipping', desc: 'Determined after address confirmation' },
       ];
 

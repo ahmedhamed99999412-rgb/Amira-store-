@@ -18,8 +18,8 @@
     "currency": "EGP"
   },
   "announcement": {
-    "shipping": "Free shipping on orders over EGP 1,000",
-    "returns": "30-day returns",
+    "shipping": "Shipping details are confirmed after ordering",
+    "returns": "Returns are handled through customer service",
     "authentic": "100% Authentic Products",
     "language": "العربية",
     "currency_label": "Currency"
@@ -79,17 +79,13 @@
     "kidsCta": "Shop Kids"
   },
   "trending": {
-    "title": "Trending Now",
-    "subtitle": "Discover the latest fashion trends",
+    "title": "Featured Products",
+    "subtitle": "Explore selected products from our collection",
     "viewAll": "View All"
   },
   "service": {
-    "freeShipping": "Free Delivery",
-    "freeShippingDesc": "On orders over EGP 1,000",
     "securePayment": "Secure Payment",
     "securePaymentDesc": "Cash on delivery",
-    "returns": "Easy Returns",
-    "returnsDesc": "Within 30 days",
     "support": "24/7 Support",
     "supportDesc": "Dedicated customer service"
   },
@@ -132,8 +128,8 @@
     "item": "item",
     "freeShipping": "FREE",
     "shippingManual": "Calculated after order",
-    "freeShippingUnlocked": "🎉 You've unlocked free shipping!",
-    "freeShippingProgress": "Add {amount} more to get free shipping"
+    "freeShippingUnlocked": "",
+    "freeShippingProgress": ""
   },
   "wishlist": {
     "title": "Wishlist",

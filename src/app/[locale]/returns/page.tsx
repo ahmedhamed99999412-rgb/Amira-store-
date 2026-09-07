@@ -35,8 +35,8 @@ export default async function ReturnsPage({
           <div className="prose prose-sm max-w-3xl mx-auto">
             <p className="text-muted-foreground leading-relaxed">
               {isAr
-                ? 'نحن نهدي لك فترة إرجاع مجانية خلال 30 يوماً من تاريخ استلامك للطلب. إذا كنت غير راضٍ عن منتجك، يمكنك إرجاعه لنا بحالة جديدة وغير مستخدمة.'
-                : 'We offer a free 30-day return period from the date you receive your order. If you are not satisfied with your product, you may return it to us in new, unused condition.'}
+                ? 'للاستفسار عن الإرجاع أو الاستبدال، يرجى التواصل مع خدمة العملاء قبل إرسال المنتج.'
+                : 'For return or exchange questions, please contact customer service before sending the product.'}
             </p>
           </div>
 
@@ -51,14 +51,14 @@ export default async function ReturnsPage({
                     <li>يجب أن يكون المنتج في حالة أصلية غير مستخدمة.</li>
                     <li>يجب أن يكون المنتج مع عبوته الأصلية والهياكل والملصقات.</li>
                     <li>لا يمكن إرجاع المنتجات التي تم استخدامها أو تعديلها.</li>
-                    <li>الإرجاع يجب أن يتم خلال 30 يوماً من تاريخ الاستلام.</li>
+                    <li>يرجى التواصل مع خدمة العملاء لتأكيد تفاصيل الإرجاع قبل الشحن.</li>
                   </>
                 ) : (
                   <>
                     <li>Product must be in original, unused condition.</li>
                     <li>Product must include original packaging, inserts, and tags.</li>
                     <li>Products that have been used or altered cannot be returned.</li>
-                    <li>Returns must be initiated within 30 days of receipt.</li>
+                    <li>Contact customer service to confirm return details before shipping.</li>
                   </>
                 )}
               </ul>
@@ -116,8 +116,8 @@ export default async function ReturnsPage({
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {isAr
-                  ? 'نحن نقدّم الاستبدال للمنتجات بحالة جديدة خلال 30 يوماً. يجب أن يكون المنتج غير مستخدم ومع عبوته الأصلية. يتم تباديل المنتج خلال 5-7 أيام عمل بعد استلامه.'
-                  : 'We offer exchanges for products in new condition within 30 days. Product must be unused with original packaging. Exchanges are processed within 5-7 business days of receipt.'}
+                  ? 'تواصل مع خدمة العملاء لمعرفة تفاصيل الاستبدال للمنتجات الجديدة غير المستخدمة ومع عبوتها الأصلية.'
+                  : 'Contact customer service for exchange details for new, unused products with their original packaging.'}
               </p>
             </div>
 
