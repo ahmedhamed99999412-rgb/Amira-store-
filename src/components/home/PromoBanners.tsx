@@ -1,4 +1,3 @@
-import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 
@@ -16,8 +15,6 @@ type PromoBanner = {
 };
 
 export function PromoBanners({ banners, locale }: { banners: PromoBanner[]; locale: string }) {
-  const t = useTranslations('promo');
-
   if (banners.length === 0) return null;
 
   return (
@@ -48,11 +45,6 @@ export function PromoBanners({ banners, locale }: { banners: PromoBanner[]; loca
                   <h3 className="font-serif text-3xl sm:text-4xl font-medium text-white mb-3">
                     {subtitle}
                   </h3>
-                  <p className="text-sm text-white/80 mb-6 leading-relaxed">
-                    {banner.ctaLink?.includes('beauty')
-                      ? t('beautyDesc')
-                      : t('kidsDesc')}
-                  </p>
                   {ctaText && (
                     <Button
                       asChild

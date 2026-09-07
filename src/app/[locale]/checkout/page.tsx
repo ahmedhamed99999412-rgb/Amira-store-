@@ -4,6 +4,8 @@ import { Footer } from '@/components/layout/Footer';
 import { CheckoutClient } from '@/components/checkout/CheckoutClient';
 import { getStoreSettings, getMainCategories } from '@/lib/queries';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CheckoutPage({
   params,
 }: {
@@ -28,7 +30,7 @@ export default async function CheckoutPage({
           <CheckoutClient locale={locale} />
         </div>
       </main>
-      <Footer storeName={storeName} locale={locale} />
+      <Footer storeName={storeName} locale={locale} whatsappNumber={settings.whatsappNumber} instagramUrl={settings.instagramUrl} facebookUrl={settings.facebookUrl} />
     </>
   );
 }

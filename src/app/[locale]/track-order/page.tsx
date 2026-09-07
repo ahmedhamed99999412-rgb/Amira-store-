@@ -4,6 +4,8 @@ import { Footer } from '@/components/layout/Footer';
 import { TrackOrderClient } from '@/components/track/TrackOrderClient';
 import { getStoreSettings, getMainCategories } from '@/lib/queries';
 
+export const dynamic = 'force-dynamic';
+
 export default async function TrackOrderPage({
   params,
 }: {
@@ -28,7 +30,7 @@ export default async function TrackOrderPage({
           <TrackOrderClient locale={locale} />
         </div>
       </main>
-      <Footer storeName={storeName} locale={locale} />
+      <Footer storeName={storeName} locale={locale} whatsappNumber={settings.whatsappNumber} instagramUrl={settings.instagramUrl} facebookUrl={settings.facebookUrl} />
     </>
   );
 }

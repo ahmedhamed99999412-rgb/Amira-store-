@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateSKU } from '@/lib/ai';
+import { AIProviderUnavailableError, generateSKU } from '@/lib/ai';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/session';
 import { rateLimit } from '@/lib/rate-limit';
@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && (error.message === 'UNAUTHORIZED' || error.message === 'FORBIDDEN')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+    if (error instanceof AIProviderUnavailableError) return NextResponse.json({ error: 'AI service unavailable' }, { status: 503 });
     console.error('POST /api/ai/generate-sku error:', error);
     return internalServerErrorResponse();
   }

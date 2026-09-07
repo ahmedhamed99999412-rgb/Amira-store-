@@ -1,6 +1,8 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { useCartStore } from '@/store/cart-store';
+import { useWishlistStore } from '@/store/wishlist-store';
 
 type User = {
   id: string;
@@ -51,6 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     } finally {
       setUser(null);
+      useCartStore.getState().clearCart();
+      useWishlistStore.getState().clear();
     }
   }, []);
 

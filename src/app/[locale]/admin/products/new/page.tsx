@@ -2,6 +2,8 @@ import { setRequestLocale } from 'next-intl/server';
 import { db } from '@/lib/db';
 import { ProductForm } from '@/components/admin/ProductForm';
 
+export const dynamic = 'force-dynamic';
+
 type FlatCategory = {
   id: string;
   slug: string;

@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 
 type Settings = {
   whatsappNumber: string;
+  instagramUrl: string | null;
+  facebookUrl: string | null;
   storeNameAr: string;
   storeNameEn: string;
   email: string | null;
@@ -47,6 +49,8 @@ export function SettingsManagerClient({ locale }: { locale: string }) {
 
   const [form, setForm] = useState<Settings>({
     whatsappNumber: '',
+    instagramUrl: '',
+    facebookUrl: '',
     storeNameAr: '',
     storeNameEn: '',
     email: '',
@@ -76,6 +80,8 @@ export function SettingsManagerClient({ locale }: { locale: string }) {
       const s = data.settings as Settings;
       setForm({
         ...s,
+        instagramUrl: s.instagramUrl || '',
+        facebookUrl: s.facebookUrl || '',
         email: s.email || '',
         addressAr: s.addressAr || '',
         addressEn: s.addressEn || '',
@@ -107,6 +113,8 @@ export function SettingsManagerClient({ locale }: { locale: string }) {
     try {
       const payload = {
         whatsappNumber: form.whatsappNumber,
+        instagramUrl: form.instagramUrl || null,
+        facebookUrl: form.facebookUrl || null,
         storeNameAr: form.storeNameAr,
         storeNameEn: form.storeNameEn,
         email: form.email || null,
@@ -213,6 +221,26 @@ export function SettingsManagerClient({ locale }: { locale: string }) {
                 onChange={(e) => set('currency', e.target.value)}
                 dir="ltr"
                 placeholder="EGP"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Instagram URL</Label>
+              <Input
+                type="url"
+                value={form.instagramUrl ?? ''}
+                onChange={(e) => set('instagramUrl', e.target.value)}
+                dir="ltr"
+                placeholder="https://www.instagram.com/your-account"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Facebook URL</Label>
+              <Input
+                type="url"
+                value={form.facebookUrl ?? ''}
+                onChange={(e) => set('facebookUrl', e.target.value)}
+                dir="ltr"
+                placeholder="https://www.facebook.com/your-page"
               />
             </div>
             <div className="space-y-2">

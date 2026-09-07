@@ -347,9 +347,9 @@ export function CheckoutClient({ locale }: { locale: string }) {
             )}
 
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{tCart('shipping')}</span>
-              <span className="text-muted-foreground italic">
-                {locale === 'ar' ? 'يتم تحديده بعد الطلب' : 'Calculated after order'}
+              <span className="text-muted-foreground">{locale === 'ar' ? 'الشحن' : 'Shipping'}</span>
+              <span className="text-muted-foreground italic text-right max-w-[55%]">
+                {locale === 'ar' ? 'يتم تحديده بعد ارسال عنوانك' : 'Will be confirmed after your address'}
               </span>
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-border">
@@ -363,13 +363,13 @@ export function CheckoutClient({ locale }: { locale: string }) {
             {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : (
               <>
                 <MessageCircle className="h-5 w-5 me-2" />
-                {t('whatsappConfirm')}
+                {locale === 'ar' ? 'إرسال الطلب عبر واتساب' : 'Send Order via WhatsApp'}
               </>
             )}
           </Button>
 
           <p className="text-xs text-muted-foreground text-center mt-3">
-            {locale === 'ar' ? 'سيتم تحويلك لواتساب لتأكيد الطلب' : 'You will be redirected to WhatsApp to confirm your order'}
+            {locale === 'ar' ? 'سيتم تحويلك مباشرة إلى واتساب الموقع لتأكيد الطلب وتحديد تكلفة الشحن' : 'You will be redirected directly to the store WhatsApp to confirm the order and determine shipping cost'}
           </p>
         </div>
       </div>

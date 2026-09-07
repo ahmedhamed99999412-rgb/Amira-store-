@@ -4,6 +4,8 @@ import { Footer } from '@/components/layout/Footer';
 import { CartView } from '@/components/cart/CartView';
 import { getStoreSettings, getMainCategories } from '@/lib/queries';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CartPage({
   params,
 }: {
@@ -28,7 +30,7 @@ export default async function CartPage({
           <CartView locale={locale} />
         </div>
       </main>
-      <Footer storeName={storeName} locale={locale} />
+      <Footer storeName={storeName} locale={locale} whatsappNumber={settings.whatsappNumber} instagramUrl={settings.instagramUrl} facebookUrl={settings.facebookUrl} />
     </>
   );
 }

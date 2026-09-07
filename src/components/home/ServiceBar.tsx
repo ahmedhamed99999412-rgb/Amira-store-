@@ -1,13 +1,11 @@
 import { useTranslations } from 'next-intl';
-import { Truck, ShieldCheck, RefreshCw, Headphones } from 'lucide-react';
+import { ShieldCheck, Headphones } from 'lucide-react';
 
 export function ServiceBar() {
   const t = useTranslations('service');
 
   const services = [
-    { icon: Truck, title: t('freeShipping'), desc: t('freeShippingDesc') },
     { icon: ShieldCheck, title: t('securePayment'), desc: t('securePaymentDesc') },
-    { icon: RefreshCw, title: t('returns'), desc: t('returnsDesc') },
     { icon: Headphones, title: t('support'), desc: t('supportDesc') },
   ];
 

@@ -10,6 +10,8 @@ import {
   getMainCategories,
   getAllProducts,
 } from '@/lib/queries';
+
+export const dynamic = 'force-dynamic';
 import { ProductGridSkeleton } from '@/components/ui/skeleton-loader';
 import { Suspense } from 'react';
 
@@ -125,7 +127,7 @@ export default async function ShopPage({
         </div>
       </main>
 
-      <Footer storeName={storeName} locale={locale} />
+      <Footer storeName={storeName} locale={locale} whatsappNumber={settings.whatsappNumber} instagramUrl={settings.instagramUrl} facebookUrl={settings.facebookUrl} />
     </>
   );
 }

@@ -32,6 +32,13 @@ const MAX_AI_SKU_LENGTH = 32;
 
 let zaiInstance: any = null;
 
+export class AIProviderUnavailableError extends Error {
+  constructor(cause?: unknown) {
+    super('AI provider unavailable', { cause });
+    this.name = 'AIProviderUnavailableError';
+  }
+}
+
 function withTimeout<T>(promise: Promise<T>, timeoutMs = AI_TIMEOUT_MS): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error('AI request timed out')), timeoutMs);
@@ -117,13 +124,21 @@ function validateGeneratedSKU(content: string): string {
 
 export async function getAI() {
   if (!zaiInstance) {
-    zaiInstance = await withTimeout(ZAI.create());
+    try {
+      zaiInstance = await withTimeout(ZAI.create());
+    } catch (error) {
+      throw new AIProviderUnavailableError(error);
+    }
   }
   return zaiInstance;
 }
 
 async function createCompletion(ai: any, payload: any) {
-  return withTimeout(ai.chat.completions.create(payload));
+  try {
+    return await withTimeout(ai.chat.completions.create(payload));
+  } catch (error) {
+    throw new AIProviderUnavailableError(error);
+  }
 }
 
 // Smart search: convert natural language to product search criteria
@@ -236,7 +251,7 @@ export async function chatWithAssistant(message: string, history: ChatHistoryIte
     .map((item) => ({ role: item.role, content: item.content.trim().slice(0, 4000) }))
     .filter((item) => item.content.length > 0)
     .slice(-5);
-  const systemPrompt = `You are ${info.name}'s assistant. WhatsApp: ${info.whatsapp}. Payment: COD. Shipping: ${info.freeShipping ? 'Free' : 'Calculated after order'}. Returns: 30 days. Respond in ${locale === 'ar' ? 'Arabic' : 'English'}. Be concise.`;
+  const systemPrompt = `You are ${info.name}'s assistant. WhatsApp: ${info.whatsapp}. Payment: COD. Shipping: confirm after receiving the customer's address. Returns: direct the customer to WhatsApp for assistance. Respond in ${locale === 'ar' ? 'Arabic' : 'English'}. Be concise.`;
   const response = await createCompletion(ai, {
     messages: [{ role: 'system', content: systemPrompt }, ...safeHistory, { role: 'user', content: message }],
     thinking: { type: 'disabled' },

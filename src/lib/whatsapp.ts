@@ -3,14 +3,18 @@ import { multiplyMoney } from '@/lib/money';
 
 // Format Egyptian phone for WhatsApp: 01019003677 → 201019003677
 export function formatPhoneForWhatsApp(phone: string): string {
-  const cleaned = phone.replace(/\D/g, '');
-  if (cleaned.startsWith('0')) {
-    return '20' + cleaned.slice(1);
+  const cleaned = phone.trim().replace(/\D/g, '');
+  if (!cleaned) return '';
+
+  let normalized = cleaned.startsWith('00') ? cleaned.slice(2) : cleaned;
+  if (normalized.startsWith('0')) {
+    normalized = '20' + normalized.slice(1);
+  } else if (normalized.startsWith('1') && normalized.length === 10) {
+    normalized = '20' + normalized;
   }
-  if (cleaned.startsWith('20')) {
-    return cleaned;
-  }
-  return cleaned;
+
+  if (normalized.length < 8 || normalized.length > 15) return '';
+  return normalized;
 }
 
 // Build wa.me URL with pre-filled message
@@ -67,10 +71,11 @@ export async function generateOrderMessage(
 
   // Header
   lines.push(isAr ? `🌹 مرحباً بك في ${storeName} 🌹` : `🌹 Welcome to ${storeName} 🌹`);
-  lines.push('═'.repeat(40));
+  lines.push(isAr ? 'شكرًا لاختيارك متجرنا، نحن سعداء بخدمتك' : 'Thank you for choosing our store, we are happy to serve you');
+  lines.push('═'.repeat(42));
   lines.push('');
-  lines.push(isAr ? `طلب جديد رقم: ${order.orderNumber}` : `New Order: ${order.orderNumber}`);
-  lines.push(isAr ? `التاريخ: ${new Date().toLocaleString('ar-EG')}` : `Date: ${new Date().toLocaleString('en-US')}`);
+  lines.push(isAr ? `📦 طلب جديد رقم: ${order.orderNumber}` : `📦 New order: ${order.orderNumber}`);
+  lines.push(isAr ? `📅 التاريخ: ${new Date().toLocaleString('ar-EG')}` : `📅 Date: ${new Date().toLocaleString('en-US')}`);
   lines.push('');
 
   // Customer info
@@ -89,8 +94,8 @@ export async function generateOrderMessage(
   lines.push('');
 
   // Items
-  lines.push(isAr ? '🛍️ تفاصيل الطلب:' : '🛍️ Order Details:');
-  lines.push('─'.repeat(30));
+  lines.push(isAr ? '🛍️ تفاصيل الطلب:' : '🛍️ Order details:');
+  lines.push('─'.repeat(34));
   order.items.forEach((item, idx) => {
     const name = isAr ? item.productNameAr : item.productNameEn;
     const itemTotal = multiplyMoney(item.productPrice, item.quantity);
@@ -99,7 +104,7 @@ export async function generateOrderMessage(
     lines.push(`   = ${formatPrice(itemTotal, locale)}`);
     lines.push('');
   });
-  lines.push('─'.repeat(30));
+  lines.push('─'.repeat(34));
   lines.push('');
 
   // Totals
@@ -108,27 +113,24 @@ export async function generateOrderMessage(
   if (order.shippingStatus === 'FREE') {
     lines.push(isAr ? '🚚 الشحن: مجاني 🎉' : '🚚 Shipping: FREE 🎉');
   } else {
-    lines.push(isAr ? '🚚 الشحن: سيتم تحديده حسب العنوان' : '🚚 Shipping: To be determined based on address');
+    lines.push(isAr ? '🚚 الشحن: سيتم تحديده بعد إرسال عنوان العميل' : '🚚 Shipping: will be confirmed after sending the customer address');
   }
   lines.push(isAr ? '💵 طريقة الدفع: عند الاستلام' : '💵 Payment: Cash on Delivery');
   lines.push('');
 
-  if (order.shippingStatus !== 'FREE') {
-    lines.push(isAr ? `💰 الإجمالي: ${formatPrice(order.total, locale)} + الشحن` : `💰 Total: ${formatPrice(order.total, locale)} + shipping`);
-  } else {
-    lines.push(isAr ? `💰 الإجمالي: ${formatPrice(order.total, locale)}` : `💰 Total: ${formatPrice(order.total, locale)}`);
-  }
+  lines.push(isAr ? `📍 يرجى إرسال عنوانك بالتفصيل حتي نتمكن من تحديد تكلفة الشحن بدقة قبل تأكيد الطلب.` : `📍 Please send your full address so we can determine the shipping cost accurately before confirming the order.`);
+  lines.push(isAr ? `💰 الإجمالي الحالي: ${formatPrice(order.total, locale)}` : `💰 Current total: ${formatPrice(order.total, locale)}`);
   lines.push('');
 
   // Footer
-  lines.push('═'.repeat(40));
-  lines.push(isAr ? `شكراً لثقتك في ${storeName} 💕` : `Thank you for shopping with ${storeName} 💕`);
+  lines.push('═'.repeat(42));
+  lines.push(isAr ? `🤍 شكراً لثقتك في ${storeName} 🌷` : `🤍 Thank you for trusting ${storeName} 🌷`);
   if (order.shippingStatus !== 'FREE') {
-    lines.push(isAr ? 'سنتواصل معك خلال 24 ساعة لتأكيد الطلب وتحديد تكلفة الشحن' : 'We will contact you within 24 hours to confirm the order and determine shipping cost');
+    lines.push(isAr ? 'بعد إرسال عنوانك، سنتواصل معك لتأكيد تكلفة الشحن ثم نكمل الطلب' : 'After sending your address, we will contact you to confirm the shipping cost and complete the order');
   } else {
     lines.push(isAr ? 'سنتواصل معك خلال 24 ساعة لتأكيد الطلب' : 'We will contact you within 24 hours to confirm your order');
   }
-  lines.push('═'.repeat(40));
+  lines.push('═'.repeat(42));
 
   return lines.join('\n');
 }

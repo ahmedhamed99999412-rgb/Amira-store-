@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateDescription } from '@/lib/ai';
+import { AIProviderUnavailableError, generateDescription } from '@/lib/ai';
 import { requireAdmin } from '@/lib/session';
 import { rateLimit } from '@/lib/rate-limit';
 import { generateDescriptionSchema } from '@/lib/validation/ai';
@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     console.error('POST /api/ai/generate-description error:', error);
     if (error instanceof Error && (error.message === 'UNAUTHORIZED' || error.message === 'FORBIDDEN')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (error instanceof AIProviderUnavailableError) return NextResponse.json({ error: 'AI service unavailable' }, { status: 503 });
     return internalServerErrorResponse();
   }
 }

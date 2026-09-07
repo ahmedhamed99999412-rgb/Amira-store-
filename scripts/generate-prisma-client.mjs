@@ -6,10 +6,9 @@ const schema = isPostgres
   ? 'prisma/schema.postgresql.prisma'
   : 'prisma/schema.prisma';
 
-const command = process.platform === 'win32' ? 'prisma.cmd' : 'prisma';
-const result = spawnSync(command, ['generate', `--schema=${schema}`], {
+const result = spawnSync(process.execPath, ['node_modules/prisma/build/index.js', 'generate', `--schema=${schema}`], {
   stdio: 'inherit',
-  shell: false,
+  env: { ...process.env, FORCE_COLOR: '0' },
 });
 
 if (result.error) {

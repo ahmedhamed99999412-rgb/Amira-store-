@@ -13,6 +13,8 @@ import {
   getProductBySlug,
   getRelatedProducts,
 } from '@/lib/queries';
+
+export const dynamic = 'force-dynamic';
 import { ChevronLeft } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -144,7 +146,7 @@ export default async function ProductPage({
         </div>
       </main>
 
-      <Footer storeName={storeName} locale={locale} />
+      <Footer storeName={storeName} locale={locale} whatsappNumber={settings.whatsappNumber} instagramUrl={settings.instagramUrl} facebookUrl={settings.facebookUrl} />
     </>
   );
 }

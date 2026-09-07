@@ -425,6 +425,8 @@ model Banner {
 model StoreSettings {
   id                   String   @id @default("singleton")
   whatsappNumber       String
+  instagramUrl         String?
+  facebookUrl          String?
   storeNameAr          String
   storeNameEn          String
   email                String?

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { suggestVariants } from '@/lib/ai';
+import { AIProviderUnavailableError, suggestVariants } from '@/lib/ai';
 import { requireAdmin } from '@/lib/session';
 import { rateLimit } from '@/lib/rate-limit';
 import { suggestVariantsSchema } from '@/lib/validation/ai';
@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
     if (e instanceof Error && (e.message === 'UNAUTHORIZED' || e.message === 'FORBIDDEN')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+    if (e instanceof AIProviderUnavailableError) return NextResponse.json({ error: 'AI service unavailable' }, { status: 503 });
     return internalServerErrorResponse();
   }
 }

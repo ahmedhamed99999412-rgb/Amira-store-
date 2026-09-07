@@ -12,6 +12,8 @@ import {
   getCategoryBySlug,
   getProductsByCategory,
 } from '@/lib/queries';
+
+export const dynamic = 'force-dynamic';
 import { Suspense } from 'react';
 import { ChevronLeft } from 'lucide-react';
 
@@ -158,7 +160,7 @@ export default async function CategoryPage({
         </div>
       </main>
 
-      <Footer storeName={storeName} locale={locale} />
+      <Footer storeName={storeName} locale={locale} whatsappNumber={settings.whatsappNumber} instagramUrl={settings.instagramUrl} facebookUrl={settings.facebookUrl} />
     </>
   );
 }

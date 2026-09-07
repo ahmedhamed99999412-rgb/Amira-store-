@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { chatWithAssistant } from '@/lib/ai';
+import { AIProviderUnavailableError, chatWithAssistant } from '@/lib/ai';
 import { getStoreSettings } from '@/lib/queries';
 import { rateLimit } from '@/lib/rate-limit';
 import { chatSchema } from '@/lib/validation/ai';
@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ response });
   } catch (error: unknown) {
     console.error('POST /api/ai/chat error:', error);
+    if (error instanceof AIProviderUnavailableError) {
+      return NextResponse.json({ error: 'AI service unavailable' }, { status: 503 });
+    }
     return internalServerErrorResponse();
   }
 }

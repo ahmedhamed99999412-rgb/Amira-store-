@@ -12,6 +12,8 @@ const imageFields = {
   ]).default(0),
 };
 
+const optionalImageFileSize = imageFields.fileSize.removeDefault().optional();
+
 const text = (max: number) => z.string().trim().max(max).nullable().optional();
 
 export const createAdminBannerSchema = z.object({
@@ -35,7 +37,7 @@ export const updateAdminBannerSchema = z.object({
   type: z.string().trim().min(1).max(40).optional(),
   base64Data: imageFields.base64Data.optional(),
   mimeType: imageFields.mimeType.optional(),
-  fileSize: imageFields.fileSize.optional(),
+  fileSize: optionalImageFileSize,
   titleAr: text(300),
   titleEn: text(300),
   subtitleAr: text(1000),

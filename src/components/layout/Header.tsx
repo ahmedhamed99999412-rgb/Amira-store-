@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Link, useRouter } from '@/i18n/routing';
+import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { useState, useTransition } from 'react';
 import { Search, User, Heart, ShoppingBag, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -45,6 +45,7 @@ export function Header({
   cartCount?: number;
 }) {
   const t = useTranslations();
+  const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -56,8 +57,14 @@ export function Header({
   function switchLocale() {
     const newLocale = locale === 'ar' ? 'en' : 'ar';
     startTransition(() => {
-      router.replace('/', { locale: newLocale });
+      router.replace(pathname, { locale: newLocale });
     });
+  }
+
+  async function handleLogout() {
+    await logout();
+    router.push('/');
+    router.refresh();
   }
 
   return (
@@ -175,7 +182,7 @@ export function Header({
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onClick={() => logout()}
+                      onClick={() => void handleLogout()}
                       className="text-destructive cursor-pointer"
                     >
                       {t('header.logout')}

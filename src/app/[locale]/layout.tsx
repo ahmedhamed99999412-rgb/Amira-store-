@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { ChatWidget } from '@/components/ai/ChatWidget';
+import { ServerStateSync } from '@/components/store/ServerStateSync';
 import '../globals.css';
 
 // English fonts
@@ -38,11 +39,6 @@ const amiri = Amiri({
   display: 'swap',
   weight: ['400', '700'],
 });
-
-// Generate static params for both locales (enables static rendering)
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
 
 export async function generateMetadata({
   params,
@@ -107,25 +103,27 @@ export default async function LocaleLayout({
   const lang = locale;
 
   return (
-    <html lang={lang} dir={dir} suppressHydrationWarning>
-      <body
-        className={`${inter.variable} ${playfair.variable} ${tajawal.variable} ${amiri.variable} antialiased bg-background text-foreground min-h-screen flex flex-col`}
-        style={{
-          fontFamily:
-            locale === 'ar'
-              ? 'var(--font-sans-ar), system-ui, sans-serif'
-              : 'var(--font-sans-en), system-ui, sans-serif',
-        }}
-      >
-        <NextIntlClientProvider>
-          <AuthProvider>
-            {children}
-            <CartDrawer locale={locale} />
-            <ChatWidget locale={locale} />
-          </AuthProvider>
-        </NextIntlClientProvider>
-        <Toaster position={locale === 'ar' ? 'bottom-left' : 'bottom-right'} />
-      </body>
-    </html>
+    <div
+      lang={lang}
+      dir={dir}
+      suppressHydrationWarning
+      className={`${inter.variable} ${playfair.variable} ${tajawal.variable} ${amiri.variable} antialiased bg-background text-foreground min-h-screen flex flex-col`}
+      style={{
+        fontFamily:
+          locale === 'ar'
+            ? 'var(--font-sans-ar), system-ui, sans-serif'
+            : 'var(--font-sans-en), system-ui, sans-serif',
+      }}
+    >
+      <NextIntlClientProvider>
+        <AuthProvider>
+          <ServerStateSync locale={locale} />
+          {children}
+          <CartDrawer locale={locale} />
+          <ChatWidget locale={locale} />
+        </AuthProvider>
+      </NextIntlClientProvider>
+      <Toaster position={locale === 'ar' ? 'bottom-left' : 'bottom-right'} />
+    </div>
   );
 }
