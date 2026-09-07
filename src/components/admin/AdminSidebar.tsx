@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter, usePathname } from '@/i18n/routing';
 import {
@@ -44,10 +44,14 @@ export function AdminSidebar({ locale }: { locale: string }) {
   const { logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   // Collapsed state for desktop (persisted in localStorage)
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('admin-sidebar-collapsed') === 'true';
-  });
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setCollapsed(localStorage.getItem('admin-sidebar-collapsed') === 'true');
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   function isActive(href: string): boolean {
     if (href === '/admin') return pathname === '/admin';
