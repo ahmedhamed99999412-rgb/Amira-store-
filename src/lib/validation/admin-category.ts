@@ -25,6 +25,7 @@ export const createAdminCategorySchema = z.object({
 });
 
 export const updateAdminCategorySchema = z.object({
+  parentId: z.string().trim().min(1).max(100).nullable().optional(),
   slug: slug.optional(),
   nameAr: z.string().trim().min(1).max(200).optional(),
   nameEn: z.string().trim().min(1).max(200).optional(),

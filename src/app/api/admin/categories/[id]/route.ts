@@ -15,12 +15,32 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const input = parsed.data;
     const ex = await db.category.findUnique({ where: { id } });
     if (!ex) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (input.parentId !== undefined) {
+      if (input.parentId === id) return NextResponse.json({ error: 'A category cannot be its own parent' }, { status: 400 });
+      if (input.parentId) {
+        const parent = await db.category.findUnique({ where: { id: input.parentId }, select: { id: true, parentId: true } });
+        if (!parent) return NextResponse.json({ error: 'Parent category not found' }, { status: 400 });
+        const visited = new Set<string>();
+        let ancestorId: string | null = parent.id;
+        while (ancestorId) {
+          if (ancestorId === id) return NextResponse.json({ error: 'A category cannot be moved under its own descendant' }, { status: 400 });
+          if (visited.has(ancestorId)) return NextResponse.json({ error: 'Category tree contains a cycle' }, { status: 400 });
+          visited.add(ancestorId);
+          const ancestor = await db.category.findUnique({ where: { id: ancestorId }, select: { parentId: true } });
+          ancestorId = ancestor?.parentId || null;
+        }
+      }
+    }
     if (input.slug && input.slug !== ex.slug) {
       const slugConflict = await db.category.findUnique({ where: { slug: input.slug }, select: { id: true } });
       if (slugConflict && slugConflict.id !== id) return NextResponse.json({ error: 'Slug exists' }, { status: 409 });
     }
     await db.$transaction(async (tx) => {
-      await tx.category.update({ where: { id }, data: { slug: input.slug ?? ex.slug, isActive: input.isActive ?? ex.isActive } });
+      await tx.category.update({ where: { id }, data: {
+        slug: input.slug ?? ex.slug,
+        isActive: input.isActive ?? ex.isActive,
+        ...(input.parentId !== undefined ? { parentId: input.parentId } : {}),
+      } });
       for (const locale of ['ar', 'en'] as const) {
         const d = locale === 'ar' ? { name: input.nameAr, description: input.descriptionAr } : { name: input.nameEn, description: input.descriptionEn };
         const hasAny = d.name !== undefined || d.description !== undefined;

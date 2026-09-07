@@ -29,69 +29,33 @@ export async function GET(req: NextRequest) {
     const locale = req.headers.get('x-locale') || 'ar';
 
     const cats = await db.category.findMany({
-      where: { parentId: null },
-      include: {
-        translations: true,
-        image: true,
-        children: {
-          include: {
-            translations: true,
-            image: true,
-            children: {
-              include: { translations: true, image: true },
-              orderBy: { order: 'asc' },
-            },
-          },
-          orderBy: { order: 'asc' },
-        },
-      },
+      include: { translations: true, image: true },
       orderBy: { order: 'asc' },
     });
+    const childrenByParent = new Map<string | null, typeof cats>();
+    for (const category of cats) {
+      const children = childrenByParent.get(category.parentId) || [];
+      children.push(category);
+      childrenByParent.set(category.parentId, children);
+    }
 
-    const tree = await Promise.all(
-      cats.map(async (c) => {
-        const productCount = await countProducts(c.id);
-        const children = await Promise.all(
-          c.children.map(async (ch) => {
-            const childProductCount = await countProducts(ch.id);
-            return {
-              id: ch.id,
-              slug: ch.slug,
-              name: getName(ch.translations, locale, ch.slug),
-              nameAr: ch.translations.find((t) => t.locale === 'ar')?.name || '',
-              nameEn: ch.translations.find((t) => t.locale === 'en')?.name || '',
-              order: ch.order,
-              isActive: ch.isActive,
-              image: ch.image,
-              productCount: childProductCount,
-              children: ch.children.map((gc) => ({
-                id: gc.id,
-                slug: gc.slug,
-                name: getName(gc.translations, locale, gc.slug),
-                nameAr: gc.translations.find((t) => t.locale === 'ar')?.name || '',
-                nameEn: gc.translations.find((t) => t.locale === 'en')?.name || '',
-                order: gc.order,
-                isActive: gc.isActive,
-                image: gc.image,
-              })),
-            };
-          })
-        );
+    async function buildTree(parentId: string | null): Promise<unknown[]> {
+      return Promise.all((childrenByParent.get(parentId) || []).map(async (category) => ({
+        id: category.id,
+        parentId: category.parentId,
+        slug: category.slug,
+        name: getName(category.translations, locale, category.slug),
+        nameAr: category.translations.find((t) => t.locale === 'ar')?.name || '',
+        nameEn: category.translations.find((t) => t.locale === 'en')?.name || '',
+        order: category.order,
+        isActive: category.isActive,
+        image: category.image,
+        productCount: await countProducts(category.id),
+        children: await buildTree(category.id),
+      })));
+    }
 
-        return {
-          id: c.id,
-          slug: c.slug,
-          name: getName(c.translations, locale, c.slug),
-          nameAr: c.translations.find((t) => t.locale === 'ar')?.name || '',
-          nameEn: c.translations.find((t) => t.locale === 'en')?.name || '',
-          order: c.order,
-          isActive: c.isActive,
-          image: c.image,
-          productCount,
-          children,
-        };
-      })
-    );
+    const tree = await buildTree(null);
 
     return NextResponse.json({ categories: tree });
   } catch (e: unknown) {

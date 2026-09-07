@@ -47,6 +47,7 @@ import { toast } from 'sonner';
 
 type CategoryNode = {
   id: string;
+  parentId: string | null;
   slug: string;
   name: string;
   nameAr: string;
@@ -58,12 +59,13 @@ type CategoryNode = {
   children?: CategoryNode[];
 };
 
-type FlatCategory = { id: string; name: string; slug: string; depth: number };
+type FlatCategory = { id: string; parentId: string | null; name: string; slug: string; depth: number; path: string[] };
 
-function flatten(cats: CategoryNode[], depth = 0, out: FlatCategory[] = []) {
+function flatten(cats: CategoryNode[], depth = 0, out: FlatCategory[] = [], parentId: string | null = null, parentPath: string[] = []) {
   for (const c of cats) {
-    out.push({ id: c.id, name: c.name, slug: c.slug, depth });
-    if (c.children?.length) flatten(c.children, depth + 1, out);
+    const path = [...parentPath, c.name];
+    out.push({ id: c.id, parentId, name: c.name, slug: c.slug, depth, path });
+    if (c.children?.length) flatten(c.children, depth + 1, out, c.id, path);
   }
   return out;
 }
@@ -146,7 +148,7 @@ export function CategoriesManagerClient({ locale }: { locale: string }) {
       nameAr: cat.nameAr,
       nameEn: cat.nameEn,
       slug: cat.slug,
-      parentId: '',
+      parentId: cat.parentId || '',
       isActive: cat.isActive,
     });
     setImageData(null);
@@ -179,9 +181,9 @@ export function CategoriesManagerClient({ locale }: { locale: string }) {
         nameAr: form.nameAr,
         nameEn: form.nameEn,
         slug: form.slug,
+        parentId: form.parentId || null,
         isActive: form.isActive,
       };
-      if (!editing) payload.parentId = form.parentId || null;
       if (imageData) {
         payload.image = {
           base64Data: imageData.base64Data,
@@ -211,6 +213,27 @@ export function CategoriesManagerClient({ locale }: { locale: string }) {
       setSaving(false);
     }
   }
+
+  const currentEntry = editing ? flatList.find((category) => category.id === editing.id) : null;
+  const selectedParent = form.parentId ? flatList.find((category) => category.id === form.parentId) : null;
+  const descendantIds = new Set<string>();
+  if (editing) {
+    const descendants = flatList.filter((category) => category.parentId === editing.id);
+    while (descendants.length) {
+      const descendant = descendants.shift();
+      if (!descendant || descendantIds.has(descendant.id)) continue;
+      descendantIds.add(descendant.id);
+      descendants.push(...flatList.filter((category) => category.parentId === descendant.id));
+    }
+  }
+  const currentPath = currentEntry?.path || [];
+  const newCategoryName = locale === 'ar' ? form.nameAr : form.nameEn;
+  const previewPath = [...(selectedParent?.path || []), newCategoryName || (editing?.name || t('name'))];
+  const parentEntry = editing?.parentId ? flatList.find((category) => category.id === editing.parentId) : null;
+  const displayedParent = editing ? parentEntry : selectedParent;
+  const displayedGrandparent = displayedParent?.parentId
+    ? flatList.find((category) => category.id === displayedParent.parentId)
+    : null;
 
   async function handleDelete() {
     if (!deleteId) return;
@@ -386,24 +409,50 @@ export function CategoriesManagerClient({ locale }: { locale: string }) {
                 required
               />
             </div>
-            {!editing && (
-              <div className="space-y-2">
-                <Label>{t('parentCategory')}</Label>
-                <Select value={form.parentId} onValueChange={(v) => setForm({ ...form, parentId: v === '__none__' ? '' : v })}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t('none')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">{t('none')}</SelectItem>
-                    {flatList.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {'—'.repeat(c.depth)} {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                <div>
+                  <div className="text-xs text-muted-foreground">{t('parentCategory')}</div>
+                  <div className="font-medium mt-1">{displayedParent?.name || t('none')}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">{t('grandparentCategory')}</div>
+                  <div className="font-medium mt-1">{displayedGrandparent?.name || t('none')}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">{t('treePosition')}</div>
+                  <div className="font-medium mt-1">{editing ? t('editCategory') : t('addCategory')}</div>
+                </div>
               </div>
-            )}
+              {editing && (
+                <div>
+                  <div className="text-xs text-muted-foreground">{t('currentPath')}</div>
+                  <div className="text-sm font-medium mt-1 break-words">{currentPath.join(' → ')}</div>
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>{t('parentCategory')}</Label>
+              <Select value={form.parentId || '__none__'} onValueChange={(v) => setForm({ ...form, parentId: v === '__none__' ? '' : v })}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t('none')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">{t('none')}</SelectItem>
+                  {flatList.filter((category) => category.id !== editing?.id && !descendantIds.has(category.id)).map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      <span className="font-mono text-muted-foreground me-1">{'· '.repeat(category.depth)}</span>
+                      {category.name}
+                      <span className="text-xs text-muted-foreground ms-2">({category.path.join(' → ')})</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="rounded-md border border-brand-mauve/30 bg-brand-cream/40 px-3 py-2 text-sm">
+                <div className="text-xs text-muted-foreground">{t('newPathPreview')}</div>
+                <div className="font-medium mt-1 break-words">{previewPath.join(' → ')}</div>
+              </div>
+            </div>
             <div className="space-y-2">
               <Label>{t('imageUpload')}</Label>
               <input
