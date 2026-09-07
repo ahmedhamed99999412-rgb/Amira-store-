@@ -1,7 +1,10 @@
 import type { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const configuredBaseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
+  const baseUrl = configuredBaseUrl && !configuredBaseUrl.includes('localhost')
+    ? configuredBaseUrl
+    : 'https://amira-store-zeta.vercel.app';
 
   const staticPages = [
     { url: '/ar', priority: 1.0, changeFrequency: 'daily' as const },
