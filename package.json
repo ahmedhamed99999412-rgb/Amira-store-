@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
+    "vercel-build": "npm run build",
     "build:standalone": "next build && node scripts/prepare-standalone.mjs",
     "postinstall": "node scripts/generate-prisma-client.mjs",
     "start": "next start -p 3000",
