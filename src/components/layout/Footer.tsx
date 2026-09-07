@@ -22,7 +22,10 @@ export function Footer({ storeName, locale, whatsappNumber, instagramUrl, facebo
 
   const aboutLinks: { label: string; href: string }[] = [];
 
-  const policyLinks: { label: string; href: string }[] = [];
+  const policyLinks: { label: string; href: string }[] = [
+    { label: t('shipping'), href: '/shipping' },
+    { label: t('returns'), href: '/returns' },
+  ];
 
   return (
     <footer className="bg-brand-cream border-t border-border mt-auto">

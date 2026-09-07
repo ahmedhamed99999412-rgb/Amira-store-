@@ -17,6 +17,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: '/en/register', priority: 0.5, changeFrequency: 'monthly' as const },
     { url: '/ar/track-order', priority: 0.6, changeFrequency: 'monthly' as const },
     { url: '/en/track-order', priority: 0.6, changeFrequency: 'monthly' as const },
+    { url: '/ar/shipping', priority: 0.6, changeFrequency: 'monthly' as const },
+    { url: '/en/shipping', priority: 0.6, changeFrequency: 'monthly' as const },
+    { url: '/ar/returns', priority: 0.6, changeFrequency: 'monthly' as const },
+    { url: '/en/returns', priority: 0.6, changeFrequency: 'monthly' as const },
     { url: '/ar/search', priority: 0.7, changeFrequency: 'weekly' as const },
     { url: '/en/search', priority: 0.7, changeFrequency: 'weekly' as const },
   ];

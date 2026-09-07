@@ -837,8 +837,10 @@ async function main() {
       addressEn: 'Cairo, Egypt',
       currency: 'EGP',
       freeShippingEnabled: false,
-      announcementAr: 'شحن مجاني للطلبات فوق 1000 ج.م | إرجاع خلال 30 يوم | منتجات أصلية 100%',
+       announcementAr: 'شحن مجاني للطلبات فوق 1000 ج.م | إرجاع خلال 30 يوم | منتجات أصلية 100%',
       announcementEn: 'Free shipping on orders over EGP 1,000 | 30-day returns | 100% Authentic Products',
+      instagramUrl: 'https://www.instagram.com/',
+      facebookUrl: 'https://www.facebook.com/',
     },
   });
   console.log('   ✓ Done\n');
