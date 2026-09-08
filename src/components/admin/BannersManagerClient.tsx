@@ -107,7 +107,7 @@ export function BannersManagerClient({ locale }: { locale: string }) {
     ctaLink: '',
     ctaLinkAr: '',
     ctaLinkEn: '',
-    order: '0',
+    order: '1',
     isActive: true,
   });
   const [imageData, setImageData] = useState<{ base64Data: string; mimeType: string; fileSize: number; preview: string } | null>(null);
@@ -150,7 +150,7 @@ export function BannersManagerClient({ locale }: { locale: string }) {
       ctaLink: '',
       ctaLinkAr: '',
       ctaLinkEn: '',
-      order: '0',
+      order: '1',
       isActive: true,
     });
     setImageData(null);
@@ -170,7 +170,7 @@ export function BannersManagerClient({ locale }: { locale: string }) {
       ctaLink: banner.ctaLink || '',
       ctaLinkAr: banner.ctaLinkAr || banner.ctaLink || '',
       ctaLinkEn: banner.ctaLinkEn || banner.ctaLink || '',
-      order: String(banner.order),
+      order: String(banner.order + 1),
       isActive: banner.isActive,
     });
     setImageData(null);
@@ -206,7 +206,7 @@ export function BannersManagerClient({ locale }: { locale: string }) {
         ctaLink: form.ctaLink || null,
         ctaLinkAr: form.ctaLinkAr || null,
         ctaLinkEn: form.ctaLinkEn || null,
-        order: parseInt(form.order, 10) || 0,
+        order: Math.max(0, (parseInt(form.order, 10) || 1) - 1),
         isActive: form.isActive,
       };
 
