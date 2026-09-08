@@ -96,6 +96,7 @@ model Product {
   price            Float
   comparePrice     Float?
   costPrice        Float?
+  differentPriceBySize Boolean           @default(false)
   hasVariants      Boolean              @default(false)
   isActive         Boolean              @default(true)
   isFeatured       Boolean              @default(false)
@@ -164,6 +165,8 @@ model ProductVariant {
   colorHex        String?
   stock           Int         @default(0)
   sku             String?
+  regularPrice    Float?
+  salePrice       Float?
   priceAdjustment Float       @default(0)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt

@@ -39,10 +39,12 @@ type ServerCartItem = {
   product: {
     slug: string;
     price: number;
+    comparePrice: number | null;
+    differentPriceBySize: boolean;
     translations: Array<{ locale: string; name: string }>;
     images: Array<{ id: string }>;
   };
-  variant: { size: string | null; color: string | null; priceAdjustment: number } | null;
+  variant: { size: string | null; color: string | null; regularPrice: number | null; salePrice: number | null; priceAdjustment: number } | null;
 };
 
 export const useCartStore = create<CartState>()(
@@ -189,7 +191,12 @@ export const useCartStore = create<CartState>()(
               || item.product.translations.find((translation) => translation.locale === 'ar')?.name
               || item.product.slug,
             image: item.product.images[0] ? `/api/images/${item.product.images[0].id}` : null,
-            price: item.product.price + (item.variant?.priceAdjustment || 0),
+            price: (() => {
+              const sizePriceVariant = item.product.differentPriceBySize && item.variant?.size ? item.variant : null;
+              const regularPrice = sizePriceVariant?.regularPrice ?? item.product.comparePrice ?? item.product.price;
+              const salePrice = sizePriceVariant?.salePrice ?? (item.product.comparePrice !== null ? item.product.price : null);
+              return salePrice ?? regularPrice;
+            })(),
             quantity: item.quantity,
             size: item.variant?.size || null,
             color: item.variant?.color || null,

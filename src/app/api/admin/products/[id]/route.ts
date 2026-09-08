@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const locale = req.headers.get('x-locale') || 'ar';
     const p = await db.product.findUnique({ where: { id }, include: { translations: true, images: { orderBy: { order: 'asc' } }, variants: true, tags: true, category: { include: { translations: true } } } });
     if (!p) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    return NextResponse.json({ product: { id: p.id, slug: p.slug, sku: p.sku, categoryId: p.categoryId, price: p.price, comparePrice: p.comparePrice, costPrice: p.costPrice, hasVariants: p.hasVariants, isActive: p.isActive, isFeatured: p.isFeatured, isDeleted: p.isDeleted, nameAr: p.translations.find((t) => t.locale === 'ar')?.name || '', nameEn: p.translations.find((t) => t.locale === 'en')?.name || '', shortDescriptionAr: p.translations.find((t) => t.locale === 'ar')?.shortDescription || '', shortDescriptionEn: p.translations.find((t) => t.locale === 'en')?.shortDescription || '', descriptionAr: p.translations.find((t) => t.locale === 'ar')?.description || '', descriptionEn: p.translations.find((t) => t.locale === 'en')?.description || '', images: p.images, variants: p.variants, tagsAr: p.tags.filter((t) => t.locale === 'ar').map((t) => t.tag), tagsEn: p.tags.filter((t) => t.locale === 'en').map((t) => t.tag), category: p.category } });
+    return NextResponse.json({ product: { id: p.id, slug: p.slug, sku: p.sku, categoryId: p.categoryId, price: p.price, comparePrice: p.comparePrice, costPrice: p.costPrice, differentPriceBySize: p.differentPriceBySize, hasVariants: p.hasVariants, isActive: p.isActive, isFeatured: p.isFeatured, isDeleted: p.isDeleted, nameAr: p.translations.find((t) => t.locale === 'ar')?.name || '', nameEn: p.translations.find((t) => t.locale === 'en')?.name || '', shortDescriptionAr: p.translations.find((t) => t.locale === 'ar')?.shortDescription || '', shortDescriptionEn: p.translations.find((t) => t.locale === 'en')?.shortDescription || '', descriptionAr: p.translations.find((t) => t.locale === 'ar')?.description || '', descriptionEn: p.translations.find((t) => t.locale === 'en')?.description || '', images: p.images, variants: p.variants, tagsAr: p.tags.filter((t) => t.locale === 'ar').map((t) => t.tag), tagsEn: p.tags.filter((t) => t.locale === 'en').map((t) => t.tag), category: p.category } });
   } catch (e: unknown) { const message = e instanceof Error ? e.message : ''; if (message === 'UNAUTHORIZED' || message === 'FORBIDDEN') { return NextResponse.json({ error: 'Forbidden' }, { status: 403 }); } return internalServerErrorResponse(); }
 }
 
@@ -33,6 +33,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const nextComparePrice = input.comparePrice !== undefined ? input.comparePrice : existing.comparePrice;
     if (nextComparePrice !== null && nextComparePrice <= nextPrice) {
       return NextResponse.json({ error: 'Sale price must be lower than regular price' }, { status: 400 });
+    }
+    if (input.differentPriceBySize && input.variants?.some((variant) => variant.size && variant.salePrice !== undefined && variant.salePrice !== null && variant.regularPrice !== undefined && variant.regularPrice !== null && variant.salePrice >= variant.regularPrice)) {
+      return NextResponse.json({ error: 'Each size sale price must be lower than its regular price' }, { status: 400 });
     }
 
     if (input.slug && input.slug !== existing.slug) {
@@ -56,6 +59,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         price: input.price ?? existing.price,
         comparePrice: input.comparePrice !== undefined ? input.comparePrice : existing.comparePrice,
         costPrice: input.costPrice !== undefined ? input.costPrice : existing.costPrice,
+        differentPriceBySize: input.differentPriceBySize ?? existing.differentPriceBySize,
         hasVariants: input.hasVariants ?? existing.hasVariants,
         isActive: input.isActive ?? existing.isActive,
         isFeatured: input.isFeatured ?? existing.isFeatured,
@@ -125,7 +129,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             colorHex: rawVariant.colorHex ?? null,
             stock: rawVariant.stock,
             sku: rawVariant.sku ?? null,
-            priceAdjustment: rawVariant.priceAdjustment,
+            regularPrice: rawVariant.regularPrice ?? null,
+            salePrice: rawVariant.salePrice ?? null,
+            priceAdjustment: 0,
           };
 
           if (variantId && existingIds.has(variantId)) {

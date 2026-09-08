@@ -53,9 +53,12 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid product data', details: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
-    const { sku: providedSku, slug: providedSlug, categoryId, price, comparePrice, costPrice, hasVariants, isActive, isFeatured, nameAr, nameEn, shortDescriptionAr, shortDescriptionEn, descriptionAr, descriptionEn, tagsAr, tagsEn, images, variants } = parsed.data;
+    const { sku: providedSku, slug: providedSlug, categoryId, price, comparePrice, costPrice, differentPriceBySize, hasVariants, isActive, isFeatured, nameAr, nameEn, shortDescriptionAr, shortDescriptionEn, descriptionAr, descriptionEn, tagsAr, tagsEn, images, variants } = parsed.data;
     if (comparePrice !== undefined && comparePrice !== null && comparePrice <= price) {
       return NextResponse.json({ error: 'Sale price must be lower than regular price' }, { status: 400 });
+    }
+    if (differentPriceBySize && variants.some((variant) => variant.size && variant.salePrice !== undefined && variant.salePrice !== null && variant.regularPrice !== undefined && variant.regularPrice !== null && variant.salePrice >= variant.regularPrice)) {
+      return NextResponse.json({ error: 'Each size sale price must be lower than its regular price' }, { status: 400 });
     }
 
     // Auto-generate SKU if not provided (unique)
@@ -105,11 +108,12 @@ export async function POST(req: NextRequest) {
     const product = await db.product.create({
       data: {
         slug, sku, categoryId, price, comparePrice: comparePrice ?? null,
+        differentPriceBySize,
         costPrice: costPrice ?? null, hasVariants: !!hasVariants,
         isActive: isActive !== false, isFeatured: !!isFeatured,
         translations: { create: [{ locale: 'ar', name: nameAr, shortDescription: shortDescriptionAr || null, description: descriptionAr || null }, { locale: 'en', name: nameEn, shortDescription: shortDescriptionEn || null, description: descriptionEn || null }] },
         images: images.length > 0 ? { create: images.map((img, i) => ({ base64Data: img.base64Data, mimeType: img.mimeType, fileSize: img.fileSize || 0, order: i, isPrimary: i === 0 })) } : undefined,
-        variants: variants.length > 0 ? { create: variants.map((v) => ({ size: v.size || null, color: v.color || null, colorHex: v.colorHex || null, stock: v.stock, sku: v.sku || null, priceAdjustment: v.priceAdjustment })) } : { create: [{ stock: 0 }] },
+        variants: variants.length > 0 ? { create: variants.map((v) => ({ size: v.size || null, color: v.color || null, colorHex: v.colorHex || null, stock: v.stock, sku: v.sku || null, regularPrice: v.regularPrice ?? null, salePrice: v.salePrice ?? null, priceAdjustment: 0 })) } : { create: [{ stock: 0 }] },
         tags: { create: [...tagsAr.map((t: string) => ({ locale: 'ar', tag: t })), ...tagsEn.map((t: string) => ({ locale: 'en', tag: t }))] },
       },
     });

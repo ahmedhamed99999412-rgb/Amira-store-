@@ -26,7 +26,7 @@ const envExamplePath = path.join(root, '.env.example');
 const envSource = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : (fs.existsSync(envExamplePath) ? fs.readFileSync(envExamplePath, 'utf8') : '');
 const match = envSource.match(/^DATABASE_URL\s*=\s*['"]file:([^'"]+)['"]\s*$/m);
 if (match) {
-  dbPath = path.resolve(root, match[1]);
+  dbPath = path.resolve(root, 'prisma', match[1]);
   check('SQLite database exists', fs.existsSync(dbPath), dbPath);
 } else {
   check('SQLite DATABASE_URL configured', false, 'Expected DATABASE_URL=file:../database/custom.db for local SQLite.');

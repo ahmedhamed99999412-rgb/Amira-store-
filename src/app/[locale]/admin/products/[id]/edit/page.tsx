@@ -76,6 +76,7 @@ export default async function AdminEditProductPage({
     price: String(product.price),
     comparePrice: product.comparePrice ? String(product.comparePrice) : '',
     costPrice: product.costPrice ? String(product.costPrice) : '',
+    differentPriceBySize: product.differentPriceBySize,
     hasVariants: product.hasVariants,
     isActive: product.isActive,
     isFeatured: product.isFeatured,
@@ -98,7 +99,8 @@ export default async function AdminEditProductPage({
       colorHex: v.colorHex || '',
       stock: String(v.stock),
       sku: v.sku || '',
-      priceAdjustment: v.priceAdjustment ? String(v.priceAdjustment) : '',
+      regularPrice: v.regularPrice ? String(v.regularPrice) : '',
+      salePrice: v.salePrice ? String(v.salePrice) : '',
     })),
     images: product.images.map((img) => ({
       id: img.id,

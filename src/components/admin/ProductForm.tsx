@@ -42,6 +42,7 @@ export type ProductFormInitialData = {
   price: string;
   comparePrice: string;
   costPrice: string;
+  differentPriceBySize: boolean;
   hasVariants: boolean;
   isActive: boolean;
   isFeatured: boolean;
@@ -60,7 +61,8 @@ export type ProductFormInitialData = {
     colorHex: string;
     stock: string;
     sku: string;
-    priceAdjustment: string;
+    regularPrice: string;
+    salePrice: string;
   }>;
   images: Array<{
     id?: string;
@@ -122,6 +124,7 @@ export function ProductForm({
     categoryId: product?.categoryId || '',
     price: product?.price || '',
     costPrice: product?.costPrice || '',
+    differentPriceBySize: product?.differentPriceBySize ?? false,
     hasVariants: product?.hasVariants ?? false,
     isActive: product?.isActive ?? true,
     isFeatured: product?.isFeatured ?? false,
@@ -142,7 +145,7 @@ export function ProductForm({
   const [variants, setVariants] = useState(
     product?.variants && product.variants.length > 0
       ? product.variants
-      : [{ size: '', color: '', colorHex: '#000000', stock: '0', sku: '', priceAdjustment: '' }]
+      : [{ size: '', color: '', colorHex: '#000000', stock: '0', sku: '', regularPrice: '', salePrice: '' }]
   );
   const [variantMode, setVariantMode] = useState<VariantMode>(() => {
     const initialVariants = product?.variants || [];
@@ -171,7 +174,7 @@ export function ProductForm({
   function addVariant() {
     setVariants((prev) => [
       ...prev,
-      { size: '', color: '', colorHex: '#000000', stock: '0', sku: '', priceAdjustment: '' },
+      { size: '', color: '', colorHex: '#000000', stock: '0', sku: '', regularPrice: '', salePrice: '' },
     ]);
   }
 
@@ -330,11 +333,11 @@ export function ProductForm({
       setVariantMode(data.type === 'colors' ? 'color' : data.type === 'both' ? 'both' : 'size');
       if (data.type === 'sizes') {
         for (const size of data.sizes) {
-          newVariants.push({ size, color: '', colorHex: '#000000', stock: '0', sku: '', priceAdjustment: '' });
+          newVariants.push({ size, color: '', colorHex: '#000000', stock: '0', sku: '', regularPrice: '', salePrice: '' });
         }
       } else if (data.type === 'colors') {
         for (const color of data.colors) {
-          newVariants.push({ size: '', color: color.name, colorHex: color.hex, stock: '0', sku: '', priceAdjustment: '' });
+          newVariants.push({ size: '', color: color.name, colorHex: color.hex, stock: '0', sku: '', regularPrice: '', salePrice: '' });
         }
       } else if (data.type === 'both') {
         const firstColor = data.colors[0];
@@ -345,7 +348,8 @@ export function ProductForm({
             colorHex: firstColor?.hex || '#000000',
             stock: '0',
             sku: '',
-            priceAdjustment: '',
+            regularPrice: '',
+            salePrice: '',
           });
         }
       }
@@ -375,6 +379,18 @@ export function ProductForm({
       toast.error(locale === 'ar' ? 'سعر البيع يجب أن يكون أقل من السعر العادي' : 'Sale price must be lower than regular price');
       return;
     }
+    if (form.differentPriceBySize) {
+      const invalidSizePrice = variants.some((variant) => {
+        if (!variant.size.trim()) return false;
+        const sizeRegular = Number(variant.regularPrice || regularPrice);
+        const sizeSale = variant.salePrice ? Number(variant.salePrice) : null;
+        return sizeSale !== null && sizeSale >= sizeRegular;
+      });
+      if (invalidSizePrice) {
+        toast.error(locale === 'ar' ? 'سعر البيع لكل مقاس يجب أن يكون أقل من السعر العادي' : 'Each size sale price must be lower than its regular price');
+        return;
+      }
+    }
 
     setSaving(true);
     try {
@@ -384,6 +400,7 @@ export function ProductForm({
         categoryId: form.categoryId,
         price: salePrice || regularPrice,
         comparePrice: salePrice ? regularPrice : null,
+        differentPriceBySize: form.differentPriceBySize,
         costPrice: form.costPrice || null,
         hasVariants: form.hasVariants,
         isActive: form.isActive,
@@ -404,7 +421,8 @@ export function ProductForm({
           colorHex: v.colorHex || null,
           stock: v.stock || '0',
           sku: null,
-          priceAdjustment: '0', // Always 0 - removed from UI
+          regularPrice: form.differentPriceBySize && v.size ? (v.regularPrice || regularPrice) : null,
+          salePrice: form.differentPriceBySize && v.size ? (v.salePrice || salePrice || null) : null,
         })),
       };
 
@@ -545,6 +563,16 @@ export function ProductForm({
               />
             </div>
           </div>
+          <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
+            <Switch
+              id="differentPriceBySize"
+              checked={form.differentPriceBySize}
+              onCheckedChange={(value) => set('differentPriceBySize', value)}
+            />
+            <Label htmlFor="differentPriceBySize" className="cursor-pointer">
+              {locale === 'ar' ? 'سعر مختلف لكل مقاس' : 'Different Price by Size'}
+            </Label>
+          </div>
         </Card>
 
         {/* Translations - with AI helpers */}
@@ -661,7 +689,7 @@ export function ProductForm({
           </div>
         </Card>
 
-        {/* Variants - simplified (no SKU, no priceAdjustment) */}
+        {/* Variants: independent manual size and color options */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div>
@@ -791,7 +819,7 @@ export function ProductForm({
                   </div>
                 </div>
 
-                <div className={`grid grid-cols-1 gap-3 ${variantMode === 'both' ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+                <div className={`grid grid-cols-1 gap-3 ${variantMode === 'both' ? (form.differentPriceBySize ? 'sm:grid-cols-5' : 'sm:grid-cols-3') : (form.differentPriceBySize && variantMode === 'size' ? 'sm:grid-cols-4' : 'sm:grid-cols-2')}`}>
                   {(variantMode === 'size' || variantMode === 'both') && (
                     <div className="space-y-1.5">
                       <Label className="text-xs">
@@ -805,6 +833,37 @@ export function ProductForm({
                         dir="ltr"
                       />
                     </div>
+                  )}
+
+                  {form.differentPriceBySize && (variantMode === 'size' || variantMode === 'both') && (
+                    <>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">{locale === 'ar' ? 'السعر العادي للمقاس' : 'Size regular price'}</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={v.regularPrice}
+                          onChange={(e) => updateVariant(idx, 'regularPrice', e.target.value)}
+                          placeholder={regularPrice || '0.00'}
+                          className="h-9"
+                          dir="ltr"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">{locale === 'ar' ? 'سعر البيع للمقاس' : 'Size sale price'}</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={v.salePrice}
+                          onChange={(e) => updateVariant(idx, 'salePrice', e.target.value)}
+                          placeholder={salePrice || (locale === 'ar' ? 'اختياري' : 'Optional')}
+                          className="h-9"
+                          dir="ltr"
+                        />
+                      </div>
+                    </>
                   )}
 
                   {(variantMode === 'color' || variantMode === 'both') && (

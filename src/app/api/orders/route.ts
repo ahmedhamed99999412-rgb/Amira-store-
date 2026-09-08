@@ -137,7 +137,18 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        const price = product.price + (variant?.priceAdjustment || 0);
+        const sizePriceVariant = product.differentPriceBySize && variant?.size
+          ? product.variants.find((candidate) => candidate.size === variant.size && (candidate.regularPrice !== null || candidate.salePrice !== null))
+          : variant;
+        const regularPrice = product.differentPriceBySize && sizePriceVariant?.regularPrice !== null && sizePriceVariant?.regularPrice !== undefined
+          ? sizePriceVariant.regularPrice
+          : product.comparePrice ?? product.price;
+        const salePrice = product.differentPriceBySize && sizePriceVariant?.salePrice !== null && sizePriceVariant?.salePrice !== undefined
+          ? sizePriceVariant.salePrice
+          : product.comparePrice !== null
+          ? product.price
+          : null;
+        const price = salePrice ?? regularPrice;
         subtotal = addMoney(subtotal, multiplyMoney(price, item.quantity));
 
         const nameAr = product.translations.find((t) => t.locale === 'ar')?.name || product.slug;

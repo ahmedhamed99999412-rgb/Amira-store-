@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
+    "predev": "node scripts/generate-prisma-client.mjs",
     "build": "next build",
+    "prebuild": "node scripts/generate-prisma-client.mjs",
     "vercel-build": "npm run build",
     "build:standalone": "next build && node scripts/prepare-standalone.mjs",
     "postinstall": "node scripts/generate-prisma-client.mjs",

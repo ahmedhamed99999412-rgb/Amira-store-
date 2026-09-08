@@ -33,6 +33,8 @@ const variantSchema = z.object({
     }, 'Invalid stock').transform(Number),
   ]).default(0),
   sku: z.string().trim().max(100).nullable().optional(),
+  regularPrice: optionalMoneyNumber,
+  salePrice: optionalMoneyNumber,
   priceAdjustment: monetaryNumber.default(0),
 });
 
@@ -45,6 +47,7 @@ export const createAdminProductSchema = z.object({
   price: nonNegativeMoneyNumber,
   comparePrice: optionalMoneyNumber,
   costPrice: optionalMoneyNumber,
+  differentPriceBySize: z.boolean().default(false),
   hasVariants: z.boolean().default(false),
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
@@ -67,6 +70,7 @@ export const updateAdminProductSchema = z.object({
   price: nonNegativeNumber.optional(),
   comparePrice: optionalMoneyNumber,
   costPrice: optionalMoneyNumber,
+  differentPriceBySize: z.boolean().optional(),
   hasVariants: z.boolean().optional(),
   isActive: z.boolean().optional(),
   isFeatured: z.boolean().optional(),

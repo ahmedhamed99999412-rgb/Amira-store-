@@ -14,6 +14,7 @@ export type ProductDetail = {
   sku: string;
   price: number;
   comparePrice: number | null;
+  differentPriceBySize: boolean;
   hasVariants: boolean;
   name: string;
   shortDescription: string | null;
@@ -26,6 +27,8 @@ export type ProductDetail = {
     colorHex: string | null;
     stock: number;
     sku: string | null;
+    regularPrice: number | null;
+    salePrice: number | null;
     priceAdjustment: number;
   }[];
   totalStock: number;
@@ -58,15 +61,24 @@ export function ProductDetailClient({
   const colors = Array.from(new Set(product.variants.filter((v) => v.color).map((v) => v.color!)));
 
   const selectedVariant = product.variants.find((v) => v.id === selectedVariantId);
-  const finalPrice = selectedVariant
-    ? product.price + selectedVariant.priceAdjustment
-    : product.price;
+  const sizePriceVariant = product.differentPriceBySize && selectedVariant?.size
+    ? product.variants.find((variant) => variant.size === selectedVariant.size && (variant.regularPrice !== null || variant.salePrice !== null))
+    : selectedVariant;
+  const regularPrice = product.differentPriceBySize && sizePriceVariant?.regularPrice !== null && sizePriceVariant?.regularPrice !== undefined
+    ? sizePriceVariant.regularPrice
+    : product.comparePrice ?? product.price;
+  const salePrice = product.differentPriceBySize && sizePriceVariant?.salePrice !== null && sizePriceVariant?.salePrice !== undefined
+    ? sizePriceVariant.salePrice
+    : product.comparePrice !== null
+    ? product.price
+    : null;
+  const finalPrice = salePrice ?? regularPrice;
   const availableStock = selectedVariant?.stock ?? product.totalStock;
   const inStock = availableStock > 0;
 
   const discount =
-    product.comparePrice && product.comparePrice > finalPrice
-      ? Math.round(((product.comparePrice - finalPrice) / product.comparePrice) * 100)
+    salePrice !== null && regularPrice > salePrice
+      ? Math.round(((regularPrice - salePrice) / regularPrice) * 100)
       : 0;
 
   function formatPrice(amount: number) {
@@ -175,9 +187,9 @@ export function ProductDetailClient({
             <span className="text-2xl font-bold text-brand-charcoal">
               {formatPrice(finalPrice)}
             </span>
-            {product.comparePrice && product.comparePrice > finalPrice && (
+            {salePrice !== null && regularPrice > salePrice && (
               <span className="text-base text-muted-foreground line-through">
-                {formatPrice(product.comparePrice)}
+                {formatPrice(regularPrice)}
               </span>
             )}
             {discount > 0 && (
