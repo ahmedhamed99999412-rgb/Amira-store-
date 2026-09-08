@@ -54,6 +54,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid product data', details: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
     const { sku: providedSku, slug: providedSlug, categoryId, price, comparePrice, costPrice, hasVariants, isActive, isFeatured, nameAr, nameEn, shortDescriptionAr, shortDescriptionEn, descriptionAr, descriptionEn, tagsAr, tagsEn, images, variants } = parsed.data;
+    if (comparePrice !== undefined && comparePrice !== null && comparePrice <= price) {
+      return NextResponse.json({ error: 'Sale price must be lower than regular price' }, { status: 400 });
+    }
 
     // Auto-generate SKU if not provided (unique)
     let sku = providedSku;

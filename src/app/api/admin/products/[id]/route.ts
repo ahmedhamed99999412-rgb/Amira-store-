@@ -29,6 +29,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const input = parsed.data;
     const existing = await db.product.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    const nextPrice = input.price ?? existing.price;
+    const nextComparePrice = input.comparePrice !== undefined ? input.comparePrice : existing.comparePrice;
+    if (nextComparePrice !== null && nextComparePrice <= nextPrice) {
+      return NextResponse.json({ error: 'Sale price must be lower than regular price' }, { status: 400 });
+    }
 
     if (input.slug && input.slug !== existing.slug) {
       const slugConflict = await db.product.findUnique({ where: { slug: input.slug }, select: { id: true } });
