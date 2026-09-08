@@ -37,7 +37,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/settings', labelKey: 'settings', icon: Settings },
 ];
 
-export function AdminSidebar({ locale }: { locale: string }) {
+export function AdminSidebar({ locale, storeName }: { locale: string; storeName?: string | null }) {
   const t = useTranslations('admin');
   const router = useRouter();
   const pathname = usePathname();
@@ -83,7 +83,7 @@ export function AdminSidebar({ locale }: { locale: string }) {
           href="/admin"
           className="flex items-center gap-2.5 group"
           onClick={() => setMobileOpen(false)}
-          title={collapsed ? (locale === 'ar' ? 'أميرا - لوحة الإدارة' : 'AMIRA - Admin Panel') : undefined}
+          title={collapsed ? `${storeName || (locale === 'ar' ? 'أميرا' : 'AMIRA')} - ${locale === 'ar' ? 'لوحة الإدارة' : 'Admin Panel'}` : undefined}
         >
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-mauve to-brand-mauve/70 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
             <span className="font-serif text-base font-bold text-white">A</span>
@@ -91,7 +91,7 @@ export function AdminSidebar({ locale }: { locale: string }) {
           {!collapsed && (
             <div className="leading-none overflow-hidden">
               <div className="font-serif text-base font-bold tracking-wide whitespace-nowrap">
-                {locale === 'ar' ? 'أميرا' : 'AMIRA'}
+                {storeName || (locale === 'ar' ? 'أميرا' : 'AMIRA')}
               </div>
               <div className="text-[9px] uppercase tracking-[0.2em] text-brand-mauve mt-0.5 whitespace-nowrap">
                 {locale === 'ar' ? 'لوحة الإدارة' : 'Admin Panel'}

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/session';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { Toaster } from '@/components/ui/sonner';
+import { getStoreSettings } from '@/lib/queries';
 
 export default async function AdminLayout({
   children,
@@ -21,11 +22,15 @@ export default async function AdminLayout({
   if (user.role !== 'ADMIN') {
     redirect(`/${locale}`);
   }
+  const settings = await getStoreSettings();
 
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="flex">
-        <AdminSidebar locale={locale} />
+        <AdminSidebar
+          locale={locale}
+          storeName={locale === 'ar' ? settings?.storeNameAr : settings?.storeNameEn}
+        />
         <main className="flex-1 min-w-0 overflow-x-hidden">
           <div className="p-4 sm:p-6 lg:p-8">
             {children}
