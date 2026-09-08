@@ -26,6 +26,8 @@ export const createAdminBannerSchema = z.object({
   ctaTextAr: text(150),
   ctaTextEn: text(150),
   ctaLink: text(1000),
+  ctaLinkAr: text(1000),
+  ctaLinkEn: text(1000),
   order: z.union([
     z.number().int().min(0).max(1_000_000),
     z.string().trim().refine((value) => Number.isSafeInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 1_000_000).transform(Number),
@@ -45,6 +47,8 @@ export const updateAdminBannerSchema = z.object({
   ctaTextAr: text(150),
   ctaTextEn: text(150),
   ctaLink: text(1000),
+  ctaLinkAr: text(1000),
+  ctaLinkEn: text(1000),
   order: z.union([
     z.number().int().min(0).max(1_000_000),
     z.string().trim().refine((value) => Number.isSafeInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 1_000_000).transform(Number),

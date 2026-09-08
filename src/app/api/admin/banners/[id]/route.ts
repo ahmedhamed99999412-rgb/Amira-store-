@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/session';
 import { updateAdminBannerSchema } from '@/lib/validation/admin-banner';
 import { internalServerErrorResponse, safeJsonBody } from '@/lib/api-errors';
+import { serializeBannerLink } from '@/lib/banner-link';
 
 // PUT /api/admin/banners/[id]
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -15,7 +16,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const input = parsed.data;
     const ex = await db.banner.findUnique({ where: { id } });
     if (!ex) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    const banner = await db.banner.update({ where: { id }, data: { ...(input.type ? { type: input.type } : {}), ...(input.base64Data ? { base64Data: input.base64Data, mimeType: input.mimeType!, fileSize: input.fileSize! } : {}), titleAr: input.titleAr !== undefined ? input.titleAr || null : ex.titleAr, titleEn: input.titleEn !== undefined ? input.titleEn || null : ex.titleEn, subtitleAr: input.subtitleAr !== undefined ? input.subtitleAr || null : ex.subtitleAr, subtitleEn: input.subtitleEn !== undefined ? input.subtitleEn || null : ex.subtitleEn, ctaTextAr: input.ctaTextAr !== undefined ? input.ctaTextAr || null : ex.ctaTextAr, ctaTextEn: input.ctaTextEn !== undefined ? input.ctaTextEn || null : ex.ctaTextEn, ctaLink: input.ctaLink !== undefined ? input.ctaLink || null : ex.ctaLink, order: input.order !== undefined ? input.order : ex.order, isActive: input.isActive !== undefined ? input.isActive : ex.isActive } });
+    const hasLocalizedLink = input.ctaLinkAr !== undefined || input.ctaLinkEn !== undefined || input.ctaLink !== undefined;
+    const existingLinks = ex.ctaLink ? ex.ctaLink : null;
+    const banner = await db.banner.update({ where: { id }, data: { ...(input.type ? { type: input.type } : {}), ...(input.base64Data ? { base64Data: input.base64Data, mimeType: input.mimeType!, fileSize: input.fileSize! } : {}), titleAr: input.titleAr !== undefined ? input.titleAr || null : ex.titleAr, titleEn: input.titleEn !== undefined ? input.titleEn || null : ex.titleEn, subtitleAr: input.subtitleAr !== undefined ? input.subtitleAr || null : ex.subtitleAr, subtitleEn: input.subtitleEn !== undefined ? input.subtitleEn || null : ex.subtitleEn, ctaTextAr: input.ctaTextAr !== undefined ? input.ctaTextAr || null : ex.ctaTextAr, ctaTextEn: input.ctaTextEn !== undefined ? input.ctaTextEn || null : ex.ctaTextEn, ...(hasLocalizedLink ? { ctaLink: serializeBannerLink(input.ctaLinkAr ?? input.ctaLink ?? existingLinks, input.ctaLinkEn ?? input.ctaLink ?? existingLinks) } : {}), order: input.order !== undefined ? input.order : ex.order, isActive: input.isActive !== undefined ? input.isActive : ex.isActive } });
     return NextResponse.json({ banner, ok: true });
   } catch (e: unknown) { const message = e instanceof Error ? e.message : ''; if (message === 'UNAUTHORIZED' || message === 'FORBIDDEN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 }); return internalServerErrorResponse(); }
 }

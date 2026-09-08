@@ -1,5 +1,6 @@
 import { Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
+import { getBannerLink } from '@/lib/banner-link';
 
 type PromoBanner = {
   id: string;
@@ -25,6 +26,7 @@ export function PromoBanners({ banners, locale }: { banners: PromoBanner[]; loca
             const title = locale === 'ar' ? banner.titleAr : banner.titleEn;
             const subtitle = locale === 'ar' ? banner.subtitleAr : banner.subtitleEn;
             const ctaText = locale === 'ar' ? banner.ctaTextAr : banner.ctaTextEn;
+            const ctaLink = getBannerLink(banner.ctaLink, locale) || '/shop';
 
             return (
               <div
@@ -51,7 +53,7 @@ export function PromoBanners({ banners, locale }: { banners: PromoBanner[]; loca
                       variant="outline"
                       className="bg-white text-brand-charcoal border-white hover:bg-white/90 hover:text-brand-charcoal rounded-full px-6 py-2 h-10 text-xs font-bold tracking-wider uppercase w-fit"
                     >
-                      <Link href={banner.ctaLink || '/shop'}>{ctaText}</Link>
+                      {ctaLink.startsWith('http') ? <a href={ctaLink} target="_blank" rel="noopener noreferrer">{ctaText}</a> : <Link href={ctaLink}>{ctaText}</Link>}
                     </Button>
                   )}
                 </div>

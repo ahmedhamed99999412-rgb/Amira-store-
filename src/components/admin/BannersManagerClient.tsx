@@ -13,6 +13,8 @@ import {
   X,
   Eye,
   EyeOff,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,6 +61,8 @@ type Banner = {
   ctaTextAr: string | null;
   ctaTextEn: string | null;
   ctaLink: string | null;
+  ctaLinkAr: string;
+  ctaLinkEn: string;
   order: number;
   isActive: boolean;
 };
@@ -101,6 +105,8 @@ export function BannersManagerClient({ locale }: { locale: string }) {
     ctaTextAr: '',
     ctaTextEn: '',
     ctaLink: '',
+    ctaLinkAr: '',
+    ctaLinkEn: '',
     order: '0',
     isActive: true,
   });
@@ -142,6 +148,8 @@ export function BannersManagerClient({ locale }: { locale: string }) {
       ctaTextAr: '',
       ctaTextEn: '',
       ctaLink: '',
+      ctaLinkAr: '',
+      ctaLinkEn: '',
       order: '0',
       isActive: true,
     });
@@ -160,6 +168,8 @@ export function BannersManagerClient({ locale }: { locale: string }) {
       ctaTextAr: banner.ctaTextAr || '',
       ctaTextEn: banner.ctaTextEn || '',
       ctaLink: banner.ctaLink || '',
+      ctaLinkAr: banner.ctaLinkAr || banner.ctaLink || '',
+      ctaLinkEn: banner.ctaLinkEn || banner.ctaLink || '',
       order: String(banner.order),
       isActive: banner.isActive,
     });
@@ -194,6 +204,8 @@ export function BannersManagerClient({ locale }: { locale: string }) {
         ctaTextAr: form.ctaTextAr || null,
         ctaTextEn: form.ctaTextEn || null,
         ctaLink: form.ctaLink || null,
+        ctaLinkAr: form.ctaLinkAr || null,
+        ctaLinkEn: form.ctaLinkEn || null,
         order: parseInt(form.order, 10) || 0,
         isActive: form.isActive,
       };
@@ -247,6 +259,26 @@ export function BannersManagerClient({ locale }: { locale: string }) {
     }
   }
 
+  async function moveBanner(banner: Banner, direction: -1 | 1) {
+    const siblings = banners
+      .filter((item) => item.type === banner.type)
+      .sort((a, b) => a.order - b.order);
+    const index = siblings.findIndex((item) => item.id === banner.id);
+    const target = siblings[index + direction];
+    if (!target) return;
+    try {
+      const [first, second] = await Promise.all([
+        fetch(`/api/admin/banners/${banner.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ order: target.order }) }),
+        fetch(`/api/admin/banners/${target.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ order: banner.order }) }),
+      ]);
+      if (!first.ok || !second.ok) throw new Error('Failed to update banner order');
+      await load();
+      toast.success(locale === 'ar' ? 'تم تحديث ترتيب البانرات' : 'Banner order updated');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : t('saveFailed'));
+    }
+  }
+
   function renderBannerCard(b: Banner) {
     const src = `data:${b.mimeType};base64,${b.base64Data}`;
     return (
@@ -265,7 +297,7 @@ export function BannersManagerClient({ locale }: { locale: string }) {
               </Badge>
             )}
           </div>
-          <div className="absolute top-2 end-2 flex gap-1">
+          <div className="absolute top-2 end-2 z-30 flex gap-1">
             <Button
               variant="secondary"
               size="sm"
@@ -286,7 +318,7 @@ export function BannersManagerClient({ locale }: { locale: string }) {
             </Button>
           </div>
           {(b.titleAr || b.titleEn || b.subtitleAr || b.subtitleEn) && (
-            <div className="absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent text-white">
+            <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent text-white">
               {b.titleAr && locale === 'ar' && (
                 <div className="font-serif text-lg font-bold">{b.titleAr}</div>
               )}
@@ -303,10 +335,16 @@ export function BannersManagerClient({ locale }: { locale: string }) {
           )}
         </div>
         <div className="p-3 text-xs text-muted-foreground flex items-center justify-between">
-          <span>
-            {t('order')}: {b.order}
-          </span>
-          {b.ctaLink && <span className="truncate max-w-32" dir="ltr">{b.ctaLink}</span>}
+          <div className="flex items-center gap-1">
+            <span>{t('order')}: {b.order}</span>
+            <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => moveBanner(b, -1)} aria-label={locale === 'ar' ? 'تحريك لأعلى' : 'Move up'}>
+              <ArrowUp className="h-3.5 w-3.5" />
+            </Button>
+            <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => moveBanner(b, 1)} aria-label={locale === 'ar' ? 'تحريك لأسفل' : 'Move down'}>
+              <ArrowDown className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+          {(b.ctaLinkAr || b.ctaLinkEn || b.ctaLink) && <span className="truncate max-w-32" dir="ltr">{b.ctaLinkEn || b.ctaLinkAr || b.ctaLink}</span>}
         </div>
       </Card>
     );
@@ -482,14 +520,18 @@ export function BannersManagerClient({ locale }: { locale: string }) {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>{t('ctaLink')}</Label>
-              <Input
-                value={form.ctaLink}
-                onChange={(e) => setForm({ ...form, ctaLink: e.target.value })}
-                placeholder="/shop or https://..."
-                dir="ltr"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>{locale === 'ar' ? 'رابط الزر بالعربية' : 'Arabic button link'}</Label>
+                <Input value={form.ctaLinkAr} onChange={(e) => setForm({ ...form, ctaLinkAr: e.target.value })} placeholder="/ar/shop" dir="ltr" />
+              </div>
+              <div className="space-y-2">
+                <Label>{locale === 'ar' ? 'رابط الزر بالإنجليزية' : 'English button link'}</Label>
+                <Input value={form.ctaLinkEn} onChange={(e) => setForm({ ...form, ctaLinkEn: e.target.value })} placeholder="/en/shop" dir="ltr" />
+              </div>
+            </div>
+            <div className="rounded-md border border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+              {locale === 'ar' ? 'سيستخدم المتجر رابط اللغة الحالية تلقائيًا.' : 'The storefront automatically uses the link for the active language.'}
             </div>
 
             <div className="flex items-center gap-3">

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
+import { getBannerLink } from '@/lib/banner-link';
 
 type HeroBanner = {
   id: string;
@@ -52,6 +53,7 @@ export function HeroCarousel({ banners, locale }: { banners: HeroBanner[]; local
           const title = locale === 'ar' ? banner.titleAr : banner.titleEn;
           const subtitle = locale === 'ar' ? banner.subtitleAr : banner.subtitleEn;
           const ctaText = locale === 'ar' ? banner.ctaTextAr : banner.ctaTextEn;
+          const ctaLink = getBannerLink(banner.ctaLink, locale) || '/shop';
 
           return (
             <div
@@ -107,20 +109,27 @@ export function HeroCarousel({ banners, locale }: { banners: HeroBanner[]; local
 
                   {/* CTA Button - premium styled with inline styles */}
                   {ctaText && (
-                    <Link
-                      href={banner.ctaLink || '/shop'}
-                      className="inline-flex items-center justify-center gap-2 h-12 px-8 text-xs font-bold tracking-[0.15em] uppercase rounded-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-                      style={{
-                        backgroundColor: '#FFFFFF',
-                        color: '#1A1A1A',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
-                      }}
-                    >
-                      {ctaText}
-                      <span className="text-base leading-none">
-                        {isRtl ? '←' : '→'}
-                      </span>
-                    </Link>
+                    ctaLink.startsWith('http') ? (
+                      <a
+                        href={ctaLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 h-12 px-8 text-xs font-bold tracking-[0.15em] uppercase rounded-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        style={{ backgroundColor: '#FFFFFF', color: '#1A1A1A', boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}
+                      >
+                        {ctaText}
+                        <span className="text-base leading-none">{isRtl ? '←' : '→'}</span>
+                      </a>
+                    ) : (
+                      <Link
+                        href={ctaLink}
+                        className="inline-flex items-center justify-center gap-2 h-12 px-8 text-xs font-bold tracking-[0.15em] uppercase rounded-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        style={{ backgroundColor: '#FFFFFF', color: '#1A1A1A', boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}
+                      >
+                        {ctaText}
+                        <span className="text-base leading-none">{isRtl ? '←' : '→'}</span>
+                      </Link>
+                    )
                   )}
                 </div>
               </div>
