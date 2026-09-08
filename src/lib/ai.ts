@@ -1,5 +1,3 @@
-import ZAI from 'z-ai-web-dev-sdk';
-
 type ChatRole = 'user' | 'assistant';
 
 type ChatHistoryItem = {
@@ -24,6 +22,13 @@ type SuggestedVariantResult = {
   sizes: string[];
   colors: { name: string; hex: string }[];
   explanation: string;
+};
+
+type AIProviderConfig = {
+  key: string;
+  baseUrl: string;
+  model: string;
+  provider: 'openai' | 'zai';
 };
 
 const AI_TIMEOUT_MS = 30_000;
@@ -53,6 +58,74 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs = AI_TIMEOUT_MS): Promise
       },
     );
   });
+}
+
+function detectAIProviderConfig(): AIProviderConfig | null {
+  const openAiKey = process.env.OPENAI_API_KEY?.trim();
+  const zaiKey = process.env.ZAI_API_KEY?.trim();
+  const openAiBaseUrl = process.env.OPENAI_BASE_URL?.trim() || 'https://api.openai.com/v1';
+  const zaiBaseUrl = process.env.ZAI_BASE_URL?.trim() || 'https://api.z.ai/v1';
+
+  if (openAiKey) {
+    return {
+      key: openAiKey,
+      baseUrl: openAiBaseUrl.replace(/\/+$/, ''),
+      model: process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini',
+      provider: 'openai',
+    };
+  }
+
+  if (zaiKey) {
+    return {
+      key: zaiKey,
+      baseUrl: zaiBaseUrl.replace(/\/+$/, ''),
+      model: process.env.ZAI_MODEL?.trim() || 'glm-4.5',
+      provider: 'zai',
+    };
+  }
+
+  return null;
+}
+
+function getOpenAICompatibleChatUrl(baseUrl: string): string {
+  const withSlash = baseUrl.replace(/\/+$/, '');
+  if (withSlash.endsWith('/chat/completions')) return withSlash;
+  return `${withSlash}/chat/completions`;
+}
+
+async function createOpenAICompatibleCompletion(payload: any) {
+  const providerConfig = detectAIProviderConfig();
+  if (!providerConfig) throw new AIProviderUnavailableError(new Error('No AI provider configured'));
+
+  const url = getOpenAICompatibleChatUrl(providerConfig.baseUrl);
+  const body = {
+    model: providerConfig.model,
+    ...payload,
+    stream: false,
+  };
+
+  const response = await withTimeout(
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${providerConfig.key}`,
+      },
+      body: JSON.stringify(body),
+    })
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new AIProviderUnavailableError(new Error(`AI provider returned ${response.status}: ${text.slice(0, 300)}`));
+  }
+
+  const json = await response.json();
+  if (!json || typeof json !== 'object') {
+    throw new AIProviderUnavailableError(new Error('AI provider returned an invalid payload'));
+  }
+
+  return json;
 }
 
 function getTextContent(response: any): string {
@@ -115,7 +188,7 @@ function parseVariantsResult(content: string): SuggestedVariantResult {
 }
 
 function validateGeneratedSKU(content: string): string {
-  const sku = content.replace(/['"`]/g, '').trim().toUpperCase();
+  const sku = content.replace(/[\'\"`]/g, '').trim().toUpperCase();
   if (!/^AMS-[A-Z0-9]{3,5}$/.test(sku) || sku.length > MAX_AI_SKU_LENGTH) {
     return 'AMS-PRD';
   }
@@ -125,7 +198,17 @@ function validateGeneratedSKU(content: string): string {
 export async function getAI() {
   if (!zaiInstance) {
     try {
-      zaiInstance = await withTimeout(ZAI.create());
+      const provider = detectAIProviderConfig();
+      if (!provider) {
+        throw new Error('No AI provider configured');
+      }
+      zaiInstance = {
+        chat: {
+          completions: {
+            create: async (payload: any) => createOpenAICompatibleCompletion(payload),
+          },
+        },
+      };
     } catch (error) {
       throw new AIProviderUnavailableError(error);
     }
