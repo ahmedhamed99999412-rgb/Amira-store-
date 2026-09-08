@@ -267,11 +267,15 @@ export function BannersManagerClient({ locale }: { locale: string }) {
     const target = siblings[index + direction];
     if (!target) return;
     try {
-      const [first, second] = await Promise.all([
-        fetch(`/api/admin/banners/${banner.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ order: target.order }) }),
-        fetch(`/api/admin/banners/${target.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ order: banner.order }) }),
-      ]);
-      if (!first.ok || !second.ok) throw new Error('Failed to update banner order');
+      const reordered = [...siblings];
+      [reordered[index], reordered[index + direction]] = [reordered[index + direction], reordered[index]];
+      const responses = await Promise.all(reordered.map((item, itemIndex) => fetch(`/api/admin/banners/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ order: itemIndex }),
+      })));
+      if (responses.some((response) => !response.ok)) throw new Error('Failed to update banner order');
       await load();
       toast.success(locale === 'ar' ? 'تم تحديث ترتيب البانرات' : 'Banner order updated');
     } catch (e: unknown) {
@@ -336,7 +340,7 @@ export function BannersManagerClient({ locale }: { locale: string }) {
         </div>
         <div className="p-3 text-xs text-muted-foreground flex items-center justify-between">
           <div className="flex items-center gap-1">
-            <span>{t('order')}: {b.order}</span>
+            <span>{t('order')}: {b.order + 1}</span>
             <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => moveBanner(b, -1)} aria-label={locale === 'ar' ? 'تحريك لأعلى' : 'Move up'}>
               <ArrowUp className="h-3.5 w-3.5" />
             </Button>
