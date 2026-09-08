@@ -4,8 +4,8 @@ import { Prisma } from '@prisma/client';
 async function getSaleProductIds(categoryIds?: string[]) {
   const rows = await db.$queryRaw<Array<{ id: string }>>(
     categoryIds
-      ? Prisma.sql`SELECT "id" FROM "products" WHERE "comparePrice" IS NOT NULL AND "comparePrice" < "price" AND "categoryId" IN (${Prisma.join(categoryIds)})`
-      : Prisma.sql`SELECT "id" FROM "products" WHERE "comparePrice" IS NOT NULL AND "comparePrice" < "price"`
+      ? Prisma.sql`SELECT "id" FROM "products" WHERE "comparePrice" IS NOT NULL AND "comparePrice" > "price" AND "categoryId" IN (${Prisma.join(categoryIds)})`
+      : Prisma.sql`SELECT "id" FROM "products" WHERE "comparePrice" IS NOT NULL AND "comparePrice" > "price"`
   );
   return rows.map((row) => row.id);
 }
