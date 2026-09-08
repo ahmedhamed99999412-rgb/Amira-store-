@@ -1,5 +1,14 @@
 import { db } from '@/lib/db';
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+async function getSaleProductIds(categoryIds?: string[]) {
+  const rows = await db.$queryRaw<Array<{ id: string }>>(
+    categoryIds
+      ? Prisma.sql`SELECT "id" FROM "products" WHERE "comparePrice" IS NOT NULL AND "comparePrice" < "price" AND "categoryId" IN (${Prisma.join(categoryIds)})`
+      : Prisma.sql`SELECT "id" FROM "products" WHERE "comparePrice" IS NOT NULL AND "comparePrice" < "price"`
+  );
+  return rows.map((row) => row.id);
+}
 
 // ============================================================
 // STORE SETTINGS
@@ -253,6 +262,7 @@ export async function getProductsByCategory(
   }
 
   // Build where clause
+  const saleProductIds = onSale ? await getSaleProductIds(Array.from(categoryIds)) : undefined;
   const where: Prisma.ProductWhereInput = {
     isActive: true,
     isDeleted: false,
@@ -265,7 +275,7 @@ export async function getProductsByCategory(
           },
         }
       : {}),
-    ...(onSale ? { comparePrice: { not: null } } : {}),
+    ...(onSale ? { id: { in: saleProductIds } } : {}),
   };
 
   // Build order by
@@ -346,6 +356,7 @@ export async function getAllProducts(
 ) {
   const { page = 1, pageSize = 12, q, categoryId, minPrice, maxPrice, sort = 'newest', onSale, featured } = options;
 
+  const saleProductIds = onSale ? await getSaleProductIds() : undefined;
   const where: Prisma.ProductWhereInput = {
     isActive: true,
     isDeleted: false,
@@ -358,7 +369,7 @@ export async function getAllProducts(
           },
         }
       : {}),
-    ...(onSale ? { comparePrice: { not: null } } : {}),
+    ...(onSale ? { id: { in: saleProductIds } } : {}),
     ...(featured ? { isFeatured: true } : {}),
     ...(q
       ? {

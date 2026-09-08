@@ -35,10 +35,21 @@ export async function PUT(
         id,
         cart: ownerWhere,
       },
+      include: {
+        product: { include: { variants: true } },
+        variant: true,
+      },
     });
 
     if (!item) {
       return NextResponse.json({ error: 'Cart item not found' }, { status: 404 });
+    }
+
+    const availableStock = item.variant
+      ? item.variant.stock
+      : item.product.variants.reduce((sum, productVariant) => sum + productVariant.stock, 0);
+    if (quantity > availableStock) {
+      return NextResponse.json({ error: 'Insufficient stock' }, { status: 400 });
     }
 
     const updated = await db.cartItem.update({

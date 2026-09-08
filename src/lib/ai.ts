@@ -122,24 +122,6 @@ function validateGeneratedSKU(content: string): string {
   return sku;
 }
 
-function fallbackDescription(name: string, category: string, locale: string): string {
-  if (locale === 'ar') {
-    return `${name}${category ? ` ضمن فئة ${category}` : ''}. أضف تفاصيل الخامة والمقاس والعناية بالمنتج قبل النشر.`;
-  }
-  return `${name}${category ? ` in ${category}` : ''}. Add material, size, and care details before publishing.`;
-}
-
-function fallbackVariants(productName: string, category: string, locale: string): SuggestedVariantResult {
-  const text = `${productName} ${category}`.toLowerCase();
-  const isShoe = /shoe|shoes|حذاء|أحذية|صندل/.test(text);
-  const isClothing = /dress|shirt|pants|jacket|فستان|قميص|بنطلون|جاكيت|ملابس/.test(text);
-  const isVolume = /perfume|fragrance|beauty|skin|عطر|عناية|كريم|سيروم|شامبو/.test(text);
-  if (isShoe) return { type: 'sizes', sizes: ['36', '37', '38', '39', '40'], colors: [], explanation: locale === 'ar' ? 'مقاسات أحذية شائعة.' : 'Common shoe sizes.' };
-  if (isClothing) return { type: 'sizes', sizes: ['S', 'M', 'L', 'XL'], colors: [], explanation: locale === 'ar' ? 'مقاسات ملابس شائعة.' : 'Common clothing sizes.' };
-  if (isVolume) return { type: 'sizes', sizes: ['30ml', '50ml', '100ml'], colors: [], explanation: locale === 'ar' ? 'أحجام شائعة.' : 'Common volume options.' };
-  return { type: 'none', sizes: [], colors: [], explanation: locale === 'ar' ? 'لا توجد متغيرات افتراضية مناسبة.' : 'No default variants detected.' };
-}
-
 export async function getAI() {
   if (!zaiInstance) {
     try {
@@ -175,17 +157,12 @@ export async function smartSearch(query: string, locale: string): Promise<SmartS
 }
 
 export async function generateDescription(name: string, category: string, features: string, locale: string): Promise<string> {
-  try {
-    const ai = await getAI();
-    const response = await createCompletion(ai, {
-      messages: [{ role: 'user', content: `Generate a professional product description in ${locale === 'ar' ? 'Arabic' : 'English'} for: ${name} (${category}). Features: ${features}. 2-3 paragraphs, marketing tone, no emojis.` }],
-      thinking: { type: 'disabled' },
-    });
-    return getTextContent(response);
-  } catch (error) {
-    if (!(error instanceof AIProviderUnavailableError)) throw error;
-    return fallbackDescription(name, category, locale);
-  }
+  const ai = await getAI();
+  const response = await createCompletion(ai, {
+    messages: [{ role: 'user', content: `Generate a professional product description in ${locale === 'ar' ? 'Arabic' : 'English'} for: ${name} (${category}). Features: ${features}. 2-3 paragraphs, marketing tone, no emojis.` }],
+    thinking: { type: 'disabled' },
+  });
+  return getTextContent(response);
 }
 
 export async function translateText(text: string, src: string, tgt: string): Promise<string> {
@@ -267,14 +244,10 @@ Respond with JSON ONLY: {"type":"sizes|colors|both|none","sizes":["..."],"colors
       ],
       thinking: { type: 'disabled' },
     });
-    try {
-      return parseVariantsResult(getTextContent(response));
-    } catch {
-      return fallbackVariants(productName, category, locale);
-    }
+    return parseVariantsResult(getTextContent(response));
   } catch (error) {
     if (!(error instanceof AIProviderUnavailableError)) throw error;
-    return fallbackVariants(productName, category, locale);
+    throw error;
   }
 }
 

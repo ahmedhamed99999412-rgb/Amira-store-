@@ -105,6 +105,12 @@ export async function POST(req: NextRequest) {
     });
 
     if (existing) {
+      const availableStock = variant
+        ? variant.stock
+        : product.variants.reduce((sum, productVariant) => sum + productVariant.stock, 0);
+      if (existing.quantity + quantity > availableStock) {
+        return NextResponse.json({ error: 'Insufficient stock' }, { status: 400 });
+      }
       const updated = await db.cartItem.update({
         where: { id: existing.id },
         data: { quantity: existing.quantity + quantity },
