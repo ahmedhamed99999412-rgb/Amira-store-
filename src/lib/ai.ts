@@ -28,7 +28,7 @@ type AIProviderConfig = {
   key: string;
   baseUrl: string;
   model: string;
-  provider: 'openai' | 'zai';
+  provider: 'openai' | 'openrouter' | 'zai';
 };
 
 const AI_TIMEOUT_MS = 30_000;
@@ -61,10 +61,21 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs = AI_TIMEOUT_MS): Promise
 }
 
 function detectAIProviderConfig(): AIProviderConfig | null {
+  const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
   const openAiKey = process.env.OPENAI_API_KEY?.trim();
   const zaiKey = process.env.ZAI_API_KEY?.trim();
+  const openRouterBaseUrl = process.env.OPENROUTER_BASE_URL?.trim() || 'https://openrouter.ai/api/v1';
   const openAiBaseUrl = process.env.OPENAI_BASE_URL?.trim() || 'https://api.openai.com/v1';
   const zaiBaseUrl = process.env.ZAI_BASE_URL?.trim() || 'https://api.z.ai/v1';
+
+  if (openRouterKey) {
+    return {
+      key: openRouterKey,
+      baseUrl: openRouterBaseUrl.replace(/\/+$/, ''),
+      model: process.env.OPENROUTER_MODEL?.trim() || 'openrouter/free',
+      provider: 'openrouter',
+    };
+  }
 
   if (openAiKey) {
     return {
