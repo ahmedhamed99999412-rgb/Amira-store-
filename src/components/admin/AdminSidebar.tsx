@@ -53,6 +53,11 @@ export function AdminSidebar({ locale, storeName }: { locale: string; storeName?
     return () => window.clearTimeout(timeoutId);
   }, []);
 
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setMobileOpen(false), 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [pathname]);
+
   function isActive(href: string): boolean {
     if (href === '/admin') return pathname === '/admin';
     return pathname.startsWith(href);
@@ -187,7 +192,7 @@ export function AdminSidebar({ locale, storeName }: { locale: string; storeName?
             <span className="font-serif text-sm font-bold">A</span>
           </div>
           <span className="font-serif text-base font-bold">
-            {locale === 'ar' ? 'أميرا' : 'AMIRA'}
+            {storeName || (locale === 'ar' ? 'أميرا' : 'AMIRA')}
           </span>
         </Link>
         <Button
@@ -213,10 +218,10 @@ export function AdminSidebar({ locale, storeName }: { locale: string; storeName?
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="relative w-64 max-w-[80vw] h-full shadow-2xl animate-in slide-in-from-start-5 duration-300">
+          <div className="relative w-[min(17rem,82vw)] h-full shadow-2xl animate-in slide-in-from-start-5 duration-300">
             <button
               onClick={() => setMobileOpen(false)}
-              className="absolute top-3 end-3 z-10 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+              className="absolute top-3 end-3 z-10 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
               aria-label="Close menu"
             >
               <X className="h-4 w-4" />
