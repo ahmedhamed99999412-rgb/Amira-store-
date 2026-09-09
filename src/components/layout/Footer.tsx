@@ -115,13 +115,9 @@ export function Footer({ storeName, locale, whatsappNumber, instagramUrl, facebo
           </div>
           )}
 
-        </div>
+         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-12 pt-8 border-t border-brand-charcoal/10 text-center">
-          <p className="text-xs text-muted-foreground">{t('rights')}</p>
-        </div>
-      </div>
+       </div>
     </footer>
   );
 }
