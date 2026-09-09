@@ -17,9 +17,9 @@ function SuccessContent({ locale }: { locale: string }) {
   useEffect(() => {
     if (whatsappUrl && !redirected) {
       const timer = setTimeout(() => {
-        window.open(whatsappUrl, '_blank');
+        window.location.assign(whatsappUrl);
         setRedirected(true);
-      }, 2000);
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [whatsappUrl, redirected]);
