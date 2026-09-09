@@ -165,17 +165,27 @@ export function ProductsListClient({ locale }: { locale: string }) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-[1040px] w-full table-auto text-sm">
+            <table className="min-w-[1440px] w-full table-fixed text-sm">
+              <colgroup>
+                <col className="w-[88px]" />
+                <col className="w-[280px]" />
+                <col className="w-[150px]" />
+                <col className="w-[150px]" />
+                <col className="w-[120px]" />
+                <col className="w-[180px]" />
+                <col className="w-[190px]" />
+                <col className="w-[130px]" />
+              </colgroup>
               <thead className="bg-muted/50 border-b">
                 <tr className="text-start">
-                  <th className="align-middle text-start font-medium px-4 py-3">{t('image')}</th>
-                  <th className="align-middle text-start font-medium px-4 py-3">{t('name')}</th>
-                  <th className="align-middle text-start font-medium px-4 py-3 hidden md:table-cell">{t('sku')}</th>
-                  <th className="align-middle text-start font-medium px-4 py-3">{t('price')}</th>
-                  <th className="align-middle text-start font-medium px-4 py-3 hidden sm:table-cell">{t('stock')}</th>
-                  <th className="align-middle text-start font-medium px-4 py-3 hidden lg:table-cell">{t('category')}</th>
-                  <th className="align-middle text-start font-medium px-4 py-3">{t('status')}</th>
-                  <th className="align-middle text-end font-medium px-4 py-3">{t('actions')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3">{t('image')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3">{t('name')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3 hidden md:table-cell">{t('sku')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3">{t('price')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3 hidden sm:table-cell">{t('stock')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3 hidden lg:table-cell">{t('category')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3">{t('status')}</th>
+                  <th className="align-middle whitespace-nowrap text-end font-medium px-4 py-3">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody>
