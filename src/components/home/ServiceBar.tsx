@@ -1,12 +1,14 @@
 import { useTranslations } from 'next-intl';
-import { ShieldCheck, Headphones } from 'lucide-react';
+import { ShieldCheck, Headphones, Banknote, HeartHandshake } from 'lucide-react';
 
 export function ServiceBar() {
   const t = useTranslations('service');
 
   const services = [
     { icon: ShieldCheck, title: t('securePayment'), desc: t('securePaymentDesc') },
-    { icon: Headphones, title: t('support'), desc: t('supportDesc') },
+    { icon: Banknote, title: t('cashOnDelivery'), desc: t('cashOnDeliveryDesc') },
+    { icon: Headphones, title: t('support247'), desc: t('support247Desc') },
+    { icon: HeartHandshake, title: t('customerService'), desc: t('customerServiceDesc') },
   ];
 
   return (

@@ -85,9 +85,13 @@
   },
   "service": {
     "securePayment": "Secure Payment",
-    "securePaymentDesc": "Cash on delivery",
-    "support": "24/7 Support",
-    "supportDesc": "Dedicated customer service"
+    "securePaymentDesc": "Encrypted & protected",
+    "cashOnDelivery": "Cash on Delivery",
+    "cashOnDeliveryDesc": "Pay upon receipt",
+    "support247": "24/7 Support",
+    "support247Desc": "Always available",
+    "customerService": "Excellent Service",
+    "customerServiceDesc": "Dedicated support"
   },
   "product": {
     "addToCart": "Add to Cart",

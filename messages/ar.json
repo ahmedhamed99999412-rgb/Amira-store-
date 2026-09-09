@@ -85,9 +85,13 @@
   },
   "service": {
     "securePayment": "دفع آمن",
-    "securePaymentDesc": "دفع عند الاستلام",
-    "support": "دعم 24/7",
-    "supportDesc": "خدمة عملاء متميزة"
+    "securePaymentDesc": "مأمن ومشفر",
+    "cashOnDelivery": "دفع عند الاستلام",
+    "cashOnDeliveryDesc": "ادفع عند الاستلام",
+    "support247": "دعم 24/7",
+    "support247Desc": "متاح في أي وقت",
+    "customerService": "خدمة عملاء متميزة",
+    "customerServiceDesc": "دعم مخصص"
   },
   "product": {
     "addToCart": "أضف للسلة",
