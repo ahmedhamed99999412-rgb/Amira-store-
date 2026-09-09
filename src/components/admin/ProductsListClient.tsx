@@ -165,23 +165,23 @@ export function ProductsListClient({ locale }: { locale: string }) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full table-fixed text-sm">
               <thead className="bg-muted/50 border-b">
                 <tr className="text-start">
-                  <th className="text-start font-medium px-4 py-3">{t('image')}</th>
-                  <th className="text-start font-medium px-4 py-3">{t('name')}</th>
-                  <th className="text-start font-medium px-4 py-3 hidden md:table-cell">{t('sku')}</th>
-                  <th className="text-start font-medium px-4 py-3">{t('price')}</th>
-                  <th className="text-start font-medium px-4 py-3 hidden sm:table-cell">{t('stock')}</th>
-                  <th className="text-start font-medium px-4 py-3 hidden lg:table-cell">{t('category')}</th>
-                  <th className="text-start font-medium px-4 py-3">{t('status')}</th>
-                  <th className="text-end font-medium px-4 py-3">{t('actions')}</th>
+                  <th className="align-middle text-start font-medium px-4 py-3">{t('image')}</th>
+                  <th className="align-middle text-start font-medium px-4 py-3">{t('name')}</th>
+                  <th className="align-middle text-start font-medium px-4 py-3 hidden md:table-cell">{t('sku')}</th>
+                  <th className="align-middle text-start font-medium px-4 py-3">{t('price')}</th>
+                  <th className="align-middle text-start font-medium px-4 py-3 hidden sm:table-cell">{t('stock')}</th>
+                  <th className="align-middle text-start font-medium px-4 py-3 hidden lg:table-cell">{t('category')}</th>
+                  <th className="align-middle text-start font-medium px-4 py-3">{t('status')}</th>
+                  <th className="align-middle text-end font-medium px-4 py-3">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((p) => (
                   <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30">
-                    <td className="px-4 py-3">
+                    <td className="align-middle text-start px-4 py-3">
                       <div className="w-12 h-12 rounded-md overflow-hidden bg-muted flex-shrink-0">
                         {p.image ? (
                            
@@ -197,7 +197,7 @@ export function ProductsListClient({ locale }: { locale: string }) {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="align-middle text-start px-4 py-3">
                       <Link
                         href={`/admin/products/${p.id}/edit`}
                         className="font-medium text-brand-charcoal hover:text-brand-mauve"
@@ -208,10 +208,10 @@ export function ProductsListClient({ locale }: { locale: string }) {
                         {p.slug}
                       </div>
                     </td>
-                    <td className="px-4 py-3 hidden md:table-cell font-mono text-xs" dir="ltr">
+                    <td className="align-middle text-start px-4 py-3 hidden md:table-cell font-mono text-xs" dir="ltr">
                       {p.sku}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="align-middle text-start px-4 py-3">
                       <div className="font-medium text-brand-charcoal">
                         {formatPrice(p.price, locale)}
                       </div>
@@ -221,15 +221,15 @@ export function ProductsListClient({ locale }: { locale: string }) {
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 hidden sm:table-cell">
+                    <td className="align-middle text-start px-4 py-3 hidden sm:table-cell">
                       <Badge variant={p.totalStock === 0 ? 'destructive' : p.totalStock < 5 ? 'secondary' : 'outline'}>
                         {formatNumber(p.totalStock, locale)}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground">
+                    <td className="align-middle text-start px-4 py-3 hidden lg:table-cell text-muted-foreground">
                       {p.category?.name || '—'}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="align-middle text-start px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {p.isActive ? (
                           <Badge variant="default">{t('active')}</Badge>
@@ -244,7 +244,7 @@ export function ProductsListClient({ locale }: { locale: string }) {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="align-middle text-end px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <Link href={`/admin/products/${p.id}/edit`}>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
