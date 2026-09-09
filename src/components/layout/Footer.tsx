@@ -22,11 +22,6 @@ export function Footer({ storeName, locale, whatsappNumber, instagramUrl, facebo
 
   const aboutLinks: { label: string; href: string }[] = [];
 
-  const policyLinks: { label: string; href: string }[] = [
-    { label: t('shipping'), href: '/shipping' },
-    { label: t('returns'), href: '/returns' },
-  ];
-
   return (
     <footer className="bg-brand-cream border-t border-border mt-auto">
       <div className="container mx-auto px-4 py-12 sm:py-16">
@@ -120,26 +115,6 @@ export function Footer({ storeName, locale, whatsappNumber, instagramUrl, facebo
           </div>
           )}
 
-          {/* Policies - hidden if no links */}
-          {policyLinks.length > 0 && (
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-charcoal mb-4">
-              {t('policies')}
-            </h4>
-            <ul className="space-y-2">
-              {policyLinks.map((link, idx) => (
-                <li key={idx}>
-                  <Link
-                    href={link.href}
-                    className="text-xs text-muted-foreground hover:text-brand-mauve transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          )}
         </div>
 
         {/* Bottom bar */}
