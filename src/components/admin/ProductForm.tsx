@@ -354,7 +354,28 @@ export function ProductForm({
         }
       }
       if (newVariants.length > 0) {
-        setVariants(newVariants);
+        const hasExistingVariantData = variants.some((variant) =>
+          variant.size.trim() ||
+          variant.color.trim() ||
+          variant.stock !== '0' ||
+          variant.sku.trim() ||
+          variant.regularPrice.trim() ||
+          variant.salePrice.trim()
+        );
+        const variantsToApply = hasExistingVariantData
+          ? [
+              ...variants,
+              ...newVariants.filter(
+                (suggested) =>
+                  !variants.some(
+                    (existing) =>
+                      existing.size.trim() === suggested.size.trim() &&
+                      existing.color.trim() === suggested.color.trim()
+                  )
+              ),
+            ]
+          : newVariants;
+        setVariants(variantsToApply);
         toast.success(
           locale === 'ar'
             ? `تم اقتراح ${newVariants.length} متغير`
