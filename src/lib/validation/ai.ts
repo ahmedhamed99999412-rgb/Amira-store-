@@ -35,6 +35,7 @@ export const suggestVariantsSchema = z.object({
 
 export const translateSchema = z.object({
   text: boundedText(5000),
+  context: z.string().trim().max(500).default(''),
   sourceLocale: z.enum(['ar', 'en']),
   targetLocale: z.enum(['ar', 'en']),
 }).strict().refine((data) => data.sourceLocale !== data.targetLocale, {

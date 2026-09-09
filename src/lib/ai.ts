@@ -259,18 +259,20 @@ export async function generateDescription(name: string, category: string, featur
   return getTextContent(response);
 }
 
-export async function translateText(text: string, src: string, tgt: string): Promise<string> {
+export async function translateText(text: string, src: string, tgt: string, context = ''): Promise<string> {
   const ai = await getAI();
   const systemPrompt = `You are a professional e-commerce copywriter for AMIRA STORE, an Egyptian fashion and beauty retailer.
 Translate the following text from ${src === 'ar' ? 'Arabic' : 'English'} to ${tgt === 'ar' ? 'Arabic' : 'English'}.
 
 Rules:
 - Use MARKETING tone, not literal translation
-- Make it appealing and natural for shoppers
-- Adapt product names to how they're actually sold in stores
-- Keep it concise and catchy
+- Make it natural, professional e-commerce English for a real product listing
+- Use the product category context to resolve ambiguous retail terms (for example, Arabic "عقد" in jewelry means "necklace", not "contract")
+- Preserve the source meaning; do not invent materials, features, colors, sizes, claims, or specifications
+- Keep product titles concise and use common retail terminology
 - Preserve any brand-relevant keywords
-- Return ONLY the translation, no explanations`;
+- Return ONLY the translation, no explanations
+${context ? `Product context: ${context}` : ''}`;
   const response = await createCompletion(ai, {
     messages: [
       { role: 'system', content: systemPrompt },

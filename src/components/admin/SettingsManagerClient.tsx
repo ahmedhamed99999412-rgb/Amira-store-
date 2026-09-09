@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
-import { Loader2, Save, Store, Truck, Bell, Lock } from 'lucide-react';
+import { Loader2, Save, Store, Bell, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -316,61 +316,6 @@ export function SettingsManagerClient({ locale }: { locale: string }) {
                 dir="ltr"
                 rows={2}
               />
-            </div>
-          </div>
-        </Card>
-
-        {/* Shipping settings */}
-        <Card className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Truck className="h-5 w-5 text-brand-mauve" />
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-brand-charcoal">
-              {ts('shipping')}
-            </h2>
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 bg-muted/40 rounded-lg">
-              <Switch
-                id="free-shipping"
-                checked={form.freeShippingEnabled}
-                onCheckedChange={(v) => set('freeShippingEnabled', v)}
-              />
-              <Label htmlFor="free-shipping" className="cursor-pointer">
-                {ts('freeShipping')}
-              </Label>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>{ts('freeShippingMinOrder')}</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={form.freeShippingMinOrder ?? ''}
-                  onChange={(e) =>
-                    set('freeShippingMinOrder', e.target.value ? parseFloat(e.target.value) : null)
-                  }
-                  dir="ltr"
-                  placeholder="1000"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{ts('freeShippingStart')}</Label>
-                <Input
-                  type="date"
-                  value={form.freeShippingStart ?? ''}
-                  onChange={(e) => set('freeShippingStart', e.target.value)}
-                  dir="ltr"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{ts('freeShippingEnd')}</Label>
-                <Input
-                  type="date"
-                  value={form.freeShippingEnd ?? ''}
-                  onChange={(e) => set('freeShippingEnd', e.target.value)}
-                  dir="ltr"
-                />
-              </div>
             </div>
           </div>
         </Card>

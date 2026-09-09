@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
     await requireAdmin();
     const parsed = translateSchema.safeParse(await safeJsonBody(req));
     if (!parsed.success) return NextResponse.json({ error: 'Invalid translation request' }, { status: 400 });
-    const { text, sourceLocale, targetLocale } = parsed.data;
-    const translation = await translateText(text, sourceLocale, targetLocale);
+    const { text, context, sourceLocale, targetLocale } = parsed.data;
+    const translation = await translateText(text, sourceLocale, targetLocale, context);
     return NextResponse.json({ translation });
   } catch (error: unknown) {
     console.error('POST /api/ai/translate error:', error);

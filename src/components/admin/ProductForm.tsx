@@ -84,6 +84,19 @@ export type FlatCategory = {
 type NewImage = { base64Data: string; mimeType: string; fileSize: number; preview: string };
 type VariantMode = 'size' | 'color' | 'both';
 
+const COLOR_HEX_BY_LABEL: Record<string, string> = {
+  black: '#000000', white: '#FFFFFF', navy: '#000080', 'navy blue': '#000080',
+  'olive green': '#808000', olive: '#808000', burgundy: '#800020', beige: '#F5F5DC',
+  charcoal: '#36454F', ivory: '#FFFFF0', gold: '#D4AF37', silver: '#C0C0C0',
+  pink: '#FFC0CB', red: '#FF0000', blue: '#0000FF', green: '#008000',
+  'dark purple': '#4B0082', purple: '#800080', brown: '#A52A2A', orange: '#FFA500',
+  أسود: '#000000', أبيض: '#FFFFFF', كحلي: '#000080', 'أخضر زيتوني': '#808000', 'موف غامق': '#4B0082',
+};
+
+function resolveColorHex(label: string): string | null {
+  return COLOR_HEX_BY_LABEL[label.trim().toLowerCase()] || null;
+}
+
 function readFileAsBase64(file: File): Promise<{ base64Data: string; mimeType: string; fileSize: number; preview: string }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -171,6 +184,11 @@ export function ProductForm({
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function getCategoryName() {
+    const category = categories.find((item) => item.id === form.categoryId);
+    return category ? (locale === 'ar' ? category.nameAr : category.nameEn) : '';
+  }
+
   function addVariant() {
     setVariants((prev) => [
       ...prev,
@@ -230,7 +248,7 @@ export function ProductForm({
       const res = await fetch('/api/ai/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: form.nameAr, sourceLocale: 'ar', targetLocale: 'en' }),
+        body: JSON.stringify({ text: form.nameAr, context: getCategoryName(), sourceLocale: 'ar', targetLocale: 'en' }),
         credentials: 'include',
       });
       const data = await res.json();
@@ -255,7 +273,7 @@ export function ProductForm({
       const res = await fetch('/api/ai/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: form.shortDescriptionAr, sourceLocale: 'ar', targetLocale: 'en' }),
+        body: JSON.stringify({ text: form.shortDescriptionAr, context: getCategoryName(), sourceLocale: 'ar', targetLocale: 'en' }),
         credentials: 'include',
       });
       const data = await res.json();
@@ -893,7 +911,13 @@ export function ProductForm({
                       <div className="flex items-center gap-2">
                         <Input
                           value={v.color}
-                          onChange={(e) => updateVariant(idx, 'color', e.target.value)}
+                          onChange={(e) => {
+                            const color = e.target.value;
+                            const colorHex = resolveColorHex(color);
+                            setVariants((prev) => prev.map((variant, i) => i === idx
+                              ? { ...variant, color, ...(colorHex ? { colorHex } : {}) }
+                              : variant));
+                          }}
                           placeholder={locale === 'ar' ? 'وردي' : 'Pink'}
                           className="h-9 flex-1"
                         />
