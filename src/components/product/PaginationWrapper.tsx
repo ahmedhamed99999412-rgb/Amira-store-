@@ -1,8 +1,9 @@
 'use client';
 
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter, usePathname } from '@/i18n/routing';
+import { useLocale } from 'next-intl';
 
 export function PaginationWrapper({
   currentPage,
@@ -14,7 +15,7 @@ export function PaginationWrapper({
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const locale = pathname.startsWith('/ar') ? 'ar' : 'en';
+  const locale = useLocale();
 
   function buildPageUrl(page: number) {
     const params = new URLSearchParams(searchParams.toString());
