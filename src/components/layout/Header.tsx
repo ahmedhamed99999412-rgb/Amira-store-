@@ -175,11 +175,11 @@ export function Header({
                     <DropdownMenuItem asChild>
                       <Link href="/account" className="w-full">{t('account.title')}</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin" className="w-full">
-                        {user.role === 'ADMIN' ? t('admin.title') : (locale === 'ar' ? 'لوحة الإدارة' : 'Admin Dashboard')}
-                      </Link>
-                    </DropdownMenuItem>
+                    {user.role === 'ADMIN' && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="w-full">{t('admin.title')}</Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => void handleLogout()}
@@ -195,12 +195,6 @@ export function Header({
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/register" className="w-full">{t('header.register')}</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin" className="w-full">
-                        {locale === 'ar' ? 'لوحة الإدارة' : 'Admin Dashboard'}
-                      </Link>
                     </DropdownMenuItem>
                   </>
                 )}
