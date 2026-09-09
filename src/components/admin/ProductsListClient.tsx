@@ -165,7 +165,7 @@ export function ProductsListClient({ locale }: { locale: string }) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full table-fixed text-sm">
+            <table className="min-w-[1040px] w-full table-auto text-sm">
               <thead className="bg-muted/50 border-b">
                 <tr className="text-start">
                   <th className="align-middle text-start font-medium px-4 py-3">{t('image')}</th>
