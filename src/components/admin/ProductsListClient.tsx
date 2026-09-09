@@ -179,8 +179,8 @@ export function ProductsListClient({ locale }: { locale: string }) {
               <thead className="bg-muted/50 border-b">
                 <tr className="text-start">
                   <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3">{t('image')}</th>
-                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3">{t('name')}</th>
-                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3 hidden md:table-cell">{t('sku')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3" dir="rtl">{t('name')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3 hidden md:table-cell" dir="ltr">{t('sku')}</th>
                   <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3">{t('price')}</th>
                   <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3 hidden sm:table-cell">{t('stock')}</th>
                   <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3 hidden lg:table-cell">{t('category')}</th>
@@ -207,14 +207,14 @@ export function ProductsListClient({ locale }: { locale: string }) {
                         )}
                       </div>
                     </td>
-                    <td className="align-middle text-start px-4 py-3">
+                    <td className="align-middle text-start px-4 py-3" dir="rtl">
                       <Link
                         href={`/admin/products/${p.id}/edit`}
                         className="font-medium text-brand-charcoal hover:text-brand-mauve"
                       >
                         {locale === 'ar' ? p.nameAr : p.nameEn}
                       </Link>
-                      <div className="text-xs text-muted-foreground" dir="ltr">
+                      <div className="text-xs text-muted-foreground text-start" dir="ltr">
                         {p.slug}
                       </div>
                     </td>
