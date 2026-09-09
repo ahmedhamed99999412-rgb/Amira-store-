@@ -153,10 +153,15 @@ export function CheckoutClient({ locale }: { locale: string }) {
       // Clear cart
       clearCart();
 
-      // Redirect to success page with order info
+      // Go straight to the store WhatsApp after the server confirms the order.
+      if (data.whatsappUrl) {
+        window.location.assign(data.whatsappUrl);
+        return;
+      }
+
+      // Keep the success page as a fallback if no WhatsApp URL is returned.
       const params = new URLSearchParams({
         orderNumber: data.order.orderNumber,
-        whatsapp: data.whatsappUrl,
       });
       router.push(`/checkout/success?${params.toString()}`);
     } catch (error: unknown) {
