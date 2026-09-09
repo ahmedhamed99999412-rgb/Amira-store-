@@ -268,9 +268,11 @@ Rules:
 - Use MARKETING tone, not literal translation
 - Make it natural, professional e-commerce English for a real product listing
 - Use the product category context to resolve ambiguous retail terms (for example, Arabic "عقد" in jewelry means "necklace", not "contract")
+- Retail glossary: عقد in jewelry/accessories = necklace; سلسلة = chain; حلق = earrings; إسورة/سوار = bracelet; محفظة = wallet; شنطة/حقيبة = bag or handbag according to category
 - Preserve the source meaning; do not invent materials, features, colors, sizes, claims, or specifications
 - Keep product titles concise and use common retail terminology
 - Preserve any brand-relevant keywords
+- If the input is a product title or description, never return a safety disclaimer, refusal, meta-commentary, or placeholder; return the closest faithful retail translation
 - Return ONLY the translation, no explanations
 ${context ? `Product context: ${context}` : ''}`;
   const response = await createCompletion(ai, {
