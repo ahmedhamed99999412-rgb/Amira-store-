@@ -1,0 +1,3 @@
+﻿-- Initial schema for Neon PostgreSQL
+-- This migration represents the baseline schema created via db push
+-- No changes needed - schema is already in sync
