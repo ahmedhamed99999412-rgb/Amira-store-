@@ -74,8 +74,8 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
   }
 
   return (
-    <div className="group block h-full min-w-0">
-      <Link href={`/product/${product.slug}`} className="block h-full">
+    <div className="group block min-w-0">
+      <Link href={`/product/${product.slug}`} className="block">
         <div className="relative overflow-hidden bg-muted aspect-[4/5] w-full mb-2 rounded-md shadow-sm hover:shadow-md transition-shadow">
           {product.image ? (
             <img
