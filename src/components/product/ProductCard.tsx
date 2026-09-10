@@ -120,21 +120,6 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
         </div>
       </Link>
 
-      {inStock ? (
-        <button
-          onClick={addToCartHandler}
-          className="w-full h-10 sm:h-11 mb-2 px-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 rounded-md transition-opacity hover:opacity-90 shrink-0"
-          style={{ backgroundColor: '#1A1A1A', color: '#FFFFFF' }}
-        >
-          <ShoppingBag className="h-4 w-4 shrink-0" />
-          <span className="truncate">{t('addToCart')}</span>
-        </button>
-      ) : (
-        <div className="w-full h-10 sm:h-11 mb-2 px-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center rounded-md bg-muted text-muted-foreground shrink-0">
-          <span className="truncate">{t('outOfStock')}</span>
-        </div>
-      )}
-
       <Link href={`/product/${product.slug}`} className="block min-w-0">
         <div className="space-y-1 min-w-0">
           {product.category && (
@@ -176,6 +161,21 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
           </div>
         </div>
       </Link>
+
+      {inStock ? (
+        <button
+          onClick={addToCartHandler}
+          className="w-full h-10 sm:h-11 mt-2 px-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 rounded-md transition-opacity hover:opacity-90 shrink-0"
+          style={{ backgroundColor: '#1A1A1A', color: '#FFFFFF' }}
+        >
+          <ShoppingBag className="h-4 w-4 shrink-0" />
+          <span className="truncate">{t('addToCart')}</span>
+        </button>
+      ) : (
+        <div className="w-full h-10 sm:h-11 mt-2 px-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center rounded-md bg-muted text-muted-foreground shrink-0">
+          <span className="truncate">{t('outOfStock')}</span>
+        </div>
+      )}
     </div>
   );
 }
