@@ -142,7 +142,8 @@
     "empty": "Your wishlist is empty",
     "emptyDesc": "Add your favorite products here",
     "moveToCart": "Move to Cart",
-    "remove": "Remove"
+    "remove": "Remove",
+    "loading": "Loading..."
   },
   "checkout": {
     "title": "Checkout",
