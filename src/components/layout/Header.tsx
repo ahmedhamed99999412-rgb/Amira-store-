@@ -272,6 +272,59 @@ export function Header({
           </ul>
         </div>
       </nav>
+
+      {/* Mobile bottom navigation */}
+      <nav className="md:hidden fixed bottom-0 start-0 end-0 z-50 bg-white/95 backdrop-blur-md border-t border-border safe-area-inset-bottom">
+        <ul className="flex items-center justify-around py-2">
+          <li>
+            <Link href="/" className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-brand-mauve transition-colors">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              <span className="text-[10px] font-medium">{locale === 'ar' ? 'الرئيسية' : 'Home'}</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/shop" className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-brand-mauve transition-colors">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span className="text-[10px] font-medium">{locale === 'ar' ? 'المتجر' : 'Shop'}</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/wishlist" className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-brand-mauve transition-colors relative">
+              <Heart className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -end-1 bg-brand-mauve text-white text-[9px] font-bold rounded-full h-3.5 w-3.5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+              <span className="text-[10px] font-medium">{locale === 'ar' ? 'المفضلة' : 'Wishlist'}</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/cart" className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-brand-mauve transition-colors relative">
+              <ShoppingBag className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -end-1 bg-brand-mauve text-white text-[9px] font-bold rounded-full h-3.5 w-3.5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+              <span className="text-[10px] font-medium">{locale === 'ar' ? 'السلة' : 'Cart'}</span>
+            </Link>
+          </li>
+          <li>
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-brand-mauve transition-colors"
+            >
+              <Menu className="h-5 w-5" />
+              <span className="text-[10px] font-medium">{locale === 'ar' ? 'القائمة' : 'Menu'}</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
     </header>
   );
 }

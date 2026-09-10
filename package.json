@@ -18,6 +18,7 @@
     "db:reset": "prisma migrate reset",
     "db:seed:full": "node --experimental-strip-types prisma/seed-full.ts",
     "db:seed": "node --experimental-strip-types prisma/seed.ts",
+    "db:seed:reviews": "node --experimental-strip-types prisma/seed-reviews.ts",
     "setup:local": "node scripts/prepare-local-env.mjs && npx prisma generate",
     "typecheck": "tsc --noEmit",
     "db:validate:postgres": "prisma validate --schema=prisma/schema.postgresql.prisma",

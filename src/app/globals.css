@@ -213,3 +213,10 @@ html {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Mobile bottom nav spacing */
+@media (max-width: 767px) {
+  main {
+    padding-bottom: 64px;
+  }
+}

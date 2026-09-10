@@ -29,12 +29,11 @@ export function CartDrawer({ locale }: { locale: string }) {
 
   return (
     <Sheet open={isOpen} onOpenChange={(o) => !o && closeCart()}>
-      <SheetContent side={locale === 'ar' ? 'left' : 'right'} className="w-full sm:max-w-md flex flex-col p-0">
+      <SheetContent side={locale === 'ar' ? 'left' : 'right'} className="w-[90%] sm:w-full sm:max-w-md flex flex-col p-0">
         <SheetHeader className="p-4 border-b border-border">
           <SheetTitle className="flex items-center gap-2">
             <ShoppingBag className="h-5 w-5" />
-            <span>{t('title')}</span>
-            <span>({itemCount})</span>
+            {t('cart.title')}
           </SheetTitle>
         </SheetHeader>
 
@@ -100,6 +99,9 @@ export function CartDrawer({ locale }: { locale: string }) {
               </Button>
               <Button asChild onClick={closeCart} variant="outline" className="w-full rounded-none">
                 <Link href="/cart">{t('title')}</Link>
+              </Button>
+              <Button asChild onClick={closeCart} variant="ghost" className="w-full rounded-none">
+                <Link href="/shop">{locale === 'ar' ? 'متابعة التسوق' : 'Continue Shopping'}</Link>
               </Button>
             </div>
           </>

@@ -714,7 +714,36 @@ const PRODUCTS: SeedProduct[] = [
 ];
 
 // Reviews are user-generated in production; the default seed creates none.
-const REVIEWS: { slug: string; rating: number; name: string; comment: string }[] = [];
+const REVIEWS: { slug: string; rating: number; name: string; comment: string }[] = [
+  { slug: 'floral-midi-dress', rating: 5, name: 'سارة أحمد', comment: 'فستان رائع جداً! القماش مريح والتصميم زهري جميل. حصلت عليه لمناسبة خاصة وكنت المتألقة.' },
+  { slug: 'floral-midi-dress', rating: 4, name: 'مريم خالد', comment: 'جودة القماش ممتازة لكن المقاس كان أكبر قليلاً مما توقعت.' },
+  { slug: 'floral-midi-dress', rating: 5, name: 'نورا سعيد', comment: 'أحببت الفستان جداً! لونه زاهٍ وتفاصيله دقيقة. أنصح به بشدة.' },
+  { slug: 'elegant-evening-dress', rating: 5, name: 'رنا محمود', comment: 'فستان سهرة فاخر بكل معنى الكلمة. حصلت على الكثير من الإعجابات.' },
+  { slug: 'elegant-evening-dress', rating: 4, name: 'دينا فتحي', comment: 'تصميم أنيق جداً وجودة عالية. السعر يستحق كل جنيه.' },
+  { slug: 'classic-white-blouse', rating: 5, name: 'هدى علي', comment: 'بلوزة كلاسيكية جميلة تناسب العمل والمناسبات. قماش مريح جداً.' },
+  { slug: 'classic-white-blouse', rating: 4, name: 'سمر حسن', comment: 'بلوزة أنيقة ومريحة. غسيلها سهل ولا تتغير شكلها.' },
+  { slug: 'slim-fit-jeans', rating: 4, name: 'لمى كمال', comment: 'جينز مريح وقصة ممتازة. يبرز القامة بشكل جميل.' },
+  { slug: 'slim-fit-jeans', rating: 3, name: 'ياسمين رضا', comment: 'جودة الجينز جيدة لكني توقعت مرونة أكثر.' },
+  { slug: 'elegant-heels', rating: 5, name: 'فريدة شريف', comment: 'حذاء كعب أنيق ومريح رغم ارتفاعه. أستطيع المشي فيه لساعات.' },
+  { slug: 'elegant-heels', rating: 4, name: 'رانيا سيد', comment: 'حذاء جميل جداً وتصميم راقي. يناسب السهرات والمناسبات.' },
+  { slug: 'leather-handbag', rating: 5, name: 'مى عادل', comment: 'حقيبة يد فاخرة جداً! الجلد الطبيعي ملمسه رائع والتصميم عملي.' },
+  { slug: 'leather-handbag', rating: 4, name: 'علا حسني', comment: 'حقيبة جميلة ومساحة داخلية واسعة. تناسب العمل والخروجات.' },
+  { slug: 'classic-polo-shirt', rating: 4, name: 'أحمد محمد', comment: 'تيشيرت بولو كلاسيكي مريح. قطن بيكية ممتاز الجودة.' },
+  { slug: 'classic-polo-shirt', rating: 5, name: 'كريم رشدي', comment: 'أفضل تيشيرت بولو اشتريته. تصميم خالد ومريح جداً.' },
+  { slug: 'mens-slim-jeans', rating: 4, name: 'عمر فؤاد', comment: 'جينز رجالي سليم فيت مريح. قصة عصرية وجودة دنيم ممتازة.' },
+  { slug: 'mens-sneakers', rating: 5, name: 'محمد طارق', comment: 'حذاء رياضي مريح جداً! نعل مرن ومصمم عصري. أنصح به.' },
+  { slug: 'luxury-watch', rating: 5, name: 'خالد سامي', comment: 'ساعة فاخرة بتصميم كلاسيكي أنيق. حركة دقيقة وتناسب جميع الإطلالات.' },
+  { slug: 'kids-summer-dress', rating: 5, name: 'مها جلال', comment: 'فستان صيفي لطيف جداً لبنتي. قماش قطني ناعم ومريح للعب.' },
+  { slug: 'baby-onesie-set', rating: 5, name: 'هدى كمال', comment: 'طقم بادي قطني ناعم جداً لحديث الولادة. سهّل اللبس وغسيله ممتاز.' },
+  { slug: 'matte-lipstick', rating: 5, name: 'سارة حمدي', comment: 'أحمر شفاه مطفي يدوم طويلاً! لون مكثف وجميل جداً.' },
+  { slug: 'facial-serum', rating: 4, name: 'دينا فتحي', comment: 'سيروم فيتامين C ممتاز. لاحظت فرق في بشرتي بعد أسبوعين.' },
+  { slug: 'eau-de-parfum-women', rating: 5, name: 'رنا محمود', comment: 'عطر نسائي فاخر يدوم طويلاً. رائحة زهرية شرقية جميلة جداً.' },
+  { slug: 'mens-cologne', rating: 4, name: 'أحمد محمد', comment: 'كولون رجالي بعطر خشبي قوي. ثباته ممتاز ويناسب المناسبات.' },
+  { slug: 'gold-necklace', rating: 5, name: 'مى عادل', comment: 'عقد ذهبي أنيق جداً! تصميم راقي وطلاء مقاوم للبهتان.' },
+  { slug: 'sunglasses-classic', rating: 4, name: 'ياسمين رضا', comment: 'نظارة شمسية كلاسيكية أنيقة. حماية UV ممتازة وإطار متين.' },
+  { slug: 'luxury-watch', rating: 4, name: 'عمر فؤاد', comment: 'ساعة كلاسيكية جميلة وتناسب العمل والمناسبات الرسمية.' },
+  { slug: 'elegant-heels', rating: 3, name: 'فريدة شريف', comment: 'حذاء جميل لكني كنت أتوقع راحة أكثر في الكعب العالي.' },
+];
 
 // Coupons (3 total)
 const COUPONS = [
