@@ -5,6 +5,53 @@ import { rateLimit } from '@/lib/rate-limit';
 import { internalServerErrorResponse, safeJsonBody } from '@/lib/api-errors';
 import { reviewSubmissionSchema } from '@/lib/validation/review';
 
+// GET /api/products/[slug]/reviews - Get product reviews
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  try {
+    const { slug } = await params;
+    const locale = req.headers.get('x-locale') || 'en';
+    const product = await db.product.findUnique({
+      where: { slug },
+      include: {
+        reviews: {
+          where: { isApproved: true },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+
+    const reviews = product.reviews.map((review) => ({
+      id: review.id,
+      rating: review.rating,
+      title: review.title,
+      comment: review.comment,
+      guestName: review.guestName,
+      createdAt: review.createdAt.toISOString(),
+    }));
+
+    const avgRating =
+      reviews.length > 0
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        : 0;
+
+    return NextResponse.json({
+      reviews,
+      count: reviews.length,
+      avgRating: Math.round(avgRating * 10) / 10,
+    });
+  } catch (error: unknown) {
+    console.error('GET reviews error:', error);
+    return internalServerErrorResponse();
+  }
+}
+
 // POST /api/products/[slug]/reviews - Submit a product review
 // Body: { name, rating (1-5), comment }
 export async function POST(
