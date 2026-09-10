@@ -74,10 +74,9 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
   }
 
   return (
-    <div className="group block">
-      {/* Image area */}
-      <Link href={`/product/${product.slug}`}>
-        <div className="relative overflow-hidden bg-muted h-56 sm:h-auto sm:aspect-[4/5] mb-2 rounded-md shadow-sm hover:shadow-md transition-shadow">
+    <div className="group block h-full min-w-0">
+      <Link href={`/product/${product.slug}`} className="block h-full">
+        <div className="relative overflow-hidden bg-muted aspect-[4/5] w-full mb-2 rounded-md shadow-sm hover:shadow-md transition-shadow">
           {product.image ? (
             <img
               src={product.image}
@@ -91,7 +90,6 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
             </div>
           )}
 
-          {/* Badges */}
           <div className="absolute top-2 start-2 flex flex-col gap-1 z-10">
             {discount > 0 && (
               <span className="bg-brand-mauve text-white text-[10px] font-bold px-2 py-1 rounded">
@@ -110,7 +108,6 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
             )}
           </div>
 
-          {/* Wishlist button */}
           <button
             onClick={toggleWishlistHandler}
             className="absolute top-2 end-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors z-10"
@@ -123,37 +120,34 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
         </div>
       </Link>
 
-      {/* Add to cart button - ALWAYS visible, consistent sizing */}
       {inStock ? (
         <button
           onClick={addToCartHandler}
-          className="w-full h-12 mb-2 px-3 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 rounded-md transition-opacity hover:opacity-90 shrink-0"
+          className="w-full h-10 sm:h-11 mb-2 px-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 rounded-md transition-opacity hover:opacity-90 shrink-0"
           style={{ backgroundColor: '#1A1A1A', color: '#FFFFFF' }}
         >
           <ShoppingBag className="h-4 w-4 shrink-0" />
           <span className="truncate">{t('addToCart')}</span>
         </button>
       ) : (
-        <div className="w-full h-12 mb-2 px-3 text-sm font-bold uppercase tracking-wider flex items-center justify-center rounded-md bg-muted text-muted-foreground shrink-0">
+        <div className="w-full h-10 sm:h-11 mb-2 px-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center rounded-md bg-muted text-muted-foreground shrink-0">
           <span className="truncate">{t('outOfStock')}</span>
         </div>
       )}
 
-      {/* Info */}
-      <Link href={`/product/${product.slug}`}>
-        <div className="space-y-1">
+      <Link href={`/product/${product.slug}`} className="block min-w-0">
+        <div className="space-y-1 min-w-0">
           {product.category && (
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">
               {product.category}
             </p>
           )}
-          <h3 className="text-sm font-medium text-brand-charcoal line-clamp-1 group-hover:text-brand-mauve transition-colors">
+          <h3 className="text-sm font-medium text-brand-charcoal line-clamp-2 min-h-[2.5rem] group-hover:text-brand-mauve transition-colors">
             {product.name}
           </h3>
 
-          {/* Rating */}
           {product.reviewCount > 0 && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 min-w-0">
               <div className="flex items-center">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
@@ -166,19 +160,16 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
                   />
                 ))}
               </div>
-              <span className="text-[10px] text-muted-foreground">
-                ({product.reviewCount})
-              </span>
+              <span className="text-[10px] text-muted-foreground">({product.reviewCount})</span>
             </div>
           )}
 
-          {/* Price */}
-          <div className="flex items-center gap-2 pt-1">
-            <span className="text-sm font-bold text-brand-charcoal">
+          <div className="flex items-center gap-2 pt-1 flex-wrap min-w-0">
+            <span className="text-sm font-bold text-brand-charcoal truncate">
               {formatPrice(product.price)}
             </span>
             {product.comparePrice && product.comparePrice > product.price && (
-              <span className="text-xs text-muted-foreground line-through">
+              <span className="text-xs text-muted-foreground line-through truncate">
                 {formatPrice(product.comparePrice)}
               </span>
             )}

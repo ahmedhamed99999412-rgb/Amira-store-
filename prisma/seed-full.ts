@@ -106,7 +106,13 @@ async function main() {
   const passwordHash = await bcrypt.hash(adminPassword, 10);
   await db.user.upsert({
     where: { username: ADMIN_USERNAME },
-    update: {},
+    update: {
+      phone: ADMIN_PHONE,
+      fullName: 'Store Administrator',
+      passwordHash,
+      role: 'ADMIN',
+      isActive: true,
+    },
     create: {
       username: ADMIN_USERNAME,
       phone: ADMIN_PHONE,
@@ -144,7 +150,10 @@ async function main() {
   const settings = dump.storeSettings?.[0] || {};
   await db.storeSettings.upsert({
     where: { id: 'singleton' },
-    update: {},
+    update: {
+      announcementAr: 'اكتشف تشكيلتنا الجديدة',
+      announcementEn: 'Discover our latest collection',
+    },
     create: {
       id: 'singleton',
       whatsappNumber: settings.whatsappNumber || STORE_WHATSAPP,

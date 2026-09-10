@@ -165,36 +165,35 @@ export function ProductsListClient({ locale }: { locale: string }) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-[1440px] w-full table-fixed text-sm">
+            <table className="min-w-[720px] w-full table-fixed text-sm">
               <colgroup>
-                <col className="w-[88px]" />
-                <col className="w-[280px]" />
-                <col className="w-[150px]" />
-                <col className="w-[150px]" />
+                <col className="w-[72px]" />
+                <col className="w-[220px]" />
                 <col className="w-[120px]" />
-                <col className="w-[180px]" />
-                <col className="w-[190px]" />
                 <col className="w-[130px]" />
+                <col className="w-[100px]" />
+                <col className="w-[140px]" />
+                <col className="w-[150px]" />
+                <col className="w-[110px]" />
               </colgroup>
               <thead className="bg-muted/50 border-b">
                 <tr className="text-start">
-                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3">{t('image')}</th>
-                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3" dir="rtl">{t('name')}</th>
-                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3 hidden md:table-cell" dir="ltr">{t('sku')}</th>
-                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3">{t('price')}</th>
-                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3 hidden sm:table-cell">{t('stock')}</th>
-                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3 hidden lg:table-cell">{t('category')}</th>
-                  <th className="align-middle whitespace-nowrap text-start font-medium px-4 py-3">{t('status')}</th>
-                  <th className="align-middle whitespace-nowrap text-end font-medium px-4 py-3">{t('actions')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-3 py-3">{t('image')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-3 py-3" dir="rtl">{t('name')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-3 py-3 hidden md:table-cell" dir="ltr">{t('sku')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-3 py-3">{t('price')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-3 py-3 hidden sm:table-cell">{t('stock')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-3 py-3 hidden lg:table-cell">{t('category')}</th>
+                  <th className="align-middle whitespace-nowrap text-start font-medium px-3 py-3">{t('status')}</th>
+                  <th className="align-middle whitespace-nowrap text-end font-medium px-3 py-3">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((p) => (
-                  <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30">
-                    <td className="align-middle text-start px-4 py-3">
+                  <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30 align-top">
+                    <td className="align-middle px-3 py-3">
                       <div className="w-12 h-12 rounded-md overflow-hidden bg-muted flex-shrink-0">
                         {p.image ? (
-                           
                           <img
                             src={p.image}
                             alt={p.nameEn}
@@ -207,39 +206,39 @@ export function ProductsListClient({ locale }: { locale: string }) {
                         )}
                       </div>
                     </td>
-                    <td className="align-middle text-start px-4 py-3" dir="rtl">
+                    <td className="align-top px-3 py-3" dir="rtl">
                       <Link
                         href={`/admin/products/${p.id}/edit`}
-                        className="font-medium text-brand-charcoal hover:text-brand-mauve"
+                        className="font-medium text-brand-charcoal hover:text-brand-mauve break-words"
                       >
                         {locale === 'ar' ? p.nameAr : p.nameEn}
                       </Link>
-                      <div className="text-xs text-muted-foreground text-start" dir="ltr">
+                      <div className="text-xs text-muted-foreground text-start break-all" dir="ltr">
                         {p.slug}
                       </div>
                     </td>
-                    <td className="align-middle text-start px-4 py-3 hidden md:table-cell font-mono text-xs" dir="ltr">
+                    <td className="align-top px-3 py-3 hidden md:table-cell font-mono text-xs break-all" dir="ltr">
                       {p.sku}
                     </td>
-                    <td className="align-middle text-start px-4 py-3">
-                      <div className="font-medium text-brand-charcoal">
+                    <td className="align-top px-3 py-3">
+                      <div className="font-medium text-brand-charcoal break-words">
                         {formatPrice(p.price, locale)}
                       </div>
                       {p.comparePrice && (
-                        <div className="text-xs text-muted-foreground line-through">
+                        <div className="text-xs text-muted-foreground line-through break-words">
                           {formatPrice(p.comparePrice, locale)}
                         </div>
                       )}
                     </td>
-                    <td className="align-middle text-start px-4 py-3 hidden sm:table-cell">
+                    <td className="align-top px-3 py-3 hidden sm:table-cell">
                       <Badge variant={p.totalStock === 0 ? 'destructive' : p.totalStock < 5 ? 'secondary' : 'outline'}>
                         {formatNumber(p.totalStock, locale)}
                       </Badge>
                     </td>
-                    <td className="align-middle text-start px-4 py-3 hidden lg:table-cell text-muted-foreground">
+                    <td className="align-top px-3 py-3 hidden lg:table-cell text-muted-foreground break-words">
                       {p.category?.name || '—'}
                     </td>
-                    <td className="align-middle text-start px-4 py-3">
+                    <td className="align-top px-3 py-3">
                       <div className="flex flex-wrap gap-1">
                         {p.isActive ? (
                           <Badge variant="default">{t('active')}</Badge>
@@ -254,7 +253,7 @@ export function ProductsListClient({ locale }: { locale: string }) {
                         )}
                       </div>
                     </td>
-                    <td className="align-middle text-end px-4 py-3">
+                    <td className="align-top text-end px-3 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <Link href={`/admin/products/${p.id}/edit`}>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
