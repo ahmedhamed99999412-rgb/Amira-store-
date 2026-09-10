@@ -33,7 +33,9 @@
     "login": "تسجيل الدخول",
     "register": "إنشاء حساب",
     "logout": "تسجيل الخروج",
-    "mobileMenu": "القائمة"
+    "mobileMenu": "القائمة",
+    "home": "الرئيسية",
+    "shop": "المتجر"
   },
   "search": {
     "products": "منتجات",

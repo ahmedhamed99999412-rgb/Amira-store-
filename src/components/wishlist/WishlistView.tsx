@@ -6,16 +6,71 @@ import { Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Heart } from 'lucide-react';
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore, useEffect, useReducer, useMemo, useRef } from 'react';
 
 function useHydrated() {
   return useSyncExternalStore(() => () => {}, () => true, () => false);
+}
+
+type State = {
+  products: any[];
+  loading: boolean;
+};
+
+type Action =
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_SUCCESS'; products: any[] }
+  | { type: 'FETCH_ERROR' };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'FETCH_START':
+      return { ...state, loading: true };
+    case 'FETCH_SUCCESS':
+      return { products: action.products, loading: false };
+    case 'FETCH_ERROR':
+      return { ...state, loading: false };
+    default:
+      return state;
+  }
 }
 
 export function WishlistView({ locale }: { locale: string }) {
   const { items, hydrated } = useWishlistStore();
   const t = useTranslations('wishlist');
   const mounted = useHydrated();
+  const [state, dispatch] = useReducer(reducer, { products: [], loading: false });
+  const fetchRef = useRef(0);
+
+  const shouldFetch = useMemo(() => mounted && hydrated && items.length > 0, [mounted, hydrated, items]);
+
+  useEffect(() => {
+    if (!shouldFetch) {
+      return;
+    }
+
+    const fetchId = ++fetchRef.current;
+    dispatch({ type: 'FETCH_START' });
+
+    Promise.all(
+      items.map(item =>
+        fetch(`/api/products/${item.slug}`, {
+          headers: { 'x-locale': locale }
+        })
+          .then(res => res.ok ? res.json() : Promise.reject('Failed'))
+          .then(data => data.product)
+          .catch(() => null)
+      )
+    ).then(results => {
+      if (fetchId !== fetchRef.current) return;
+      const valid = results.filter(Boolean);
+      dispatch({ type: 'FETCH_SUCCESS', products: valid });
+    });
+
+    return () => {
+      fetchRef.current += 1;
+    };
+  }, [shouldFetch, locale, items]);
 
   if (!mounted || !hydrated) {
     return (
@@ -40,6 +95,17 @@ export function WishlistView({ locale }: { locale: string }) {
     );
   }
 
+  if (state.loading) {
+    return (
+      <div className="text-center py-20">
+        <div className="animate-pulse">
+          <Heart className="h-16 w-16 mx-auto text-muted-foreground/30" />
+        </div>
+        <p className="text-sm text-muted-foreground mt-4">{t('loading')}</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h1 className="font-serif text-3xl font-medium text-brand-charcoal mb-2">{t('title')}</h1>
@@ -48,22 +114,22 @@ export function WishlistView({ locale }: { locale: string }) {
       </p>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
-        {items.map((item) => (
+        {state.products.map((product) => (
           <ProductCard
-            key={item.productId}
+            key={product.id}
             product={{
-              id: item.productId,
-              slug: item.slug,
-              sku: '',
-              price: item.price,
-              comparePrice: null,
-              name: item.name,
-              shortDescription: '',
-              category: '',
-              image: item.image,
-              totalStock: 1,
-              reviewCount: 0,
-              avgRating: 0,
+              id: product.id,
+              slug: product.slug,
+              sku: product.sku || '',
+              price: product.price,
+              comparePrice: product.comparePrice,
+              name: product.name,
+              shortDescription: product.shortDescription || '',
+              category: product.category || '',
+              image: product.image,
+              totalStock: product.totalStock,
+              reviewCount: product.reviewCount || 0,
+              avgRating: product.avgRating || 0,
             }}
             locale={locale}
           />

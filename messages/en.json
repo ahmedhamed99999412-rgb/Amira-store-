@@ -33,7 +33,9 @@
     "login": "Login",
     "register": "Register",
     "logout": "Logout",
-    "mobileMenu": "Menu"
+    "mobileMenu": "Menu",
+    "home": "Home",
+    "shop": "Shop"
   },
   "search": {
     "products": "Products",

@@ -281,7 +281,7 @@ export function Header({
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
-              <span className="text-[10px] font-medium">{locale === 'ar' ? 'الرئيسية' : 'Home'}</span>
+              <span className="text-[10px] font-medium">{t('header.home')}</span>
             </Link>
           </li>
           <li>
@@ -289,7 +289,7 @@ export function Header({
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
-              <span className="text-[10px] font-medium">{locale === 'ar' ? 'المتجر' : 'Shop'}</span>
+              <span className="text-[10px] font-medium">{t('header.shop')}</span>
             </Link>
           </li>
           <li>
@@ -300,7 +300,7 @@ export function Header({
                   {cartCount}
                 </span>
               )}
-              <span className="text-[10px] font-medium">{locale === 'ar' ? 'المفضلة' : 'Wishlist'}</span>
+              <span className="text-[10px] font-medium">{t('header.wishlist')}</span>
             </Link>
           </li>
           <li>
@@ -311,7 +311,7 @@ export function Header({
                   {cartCount}
                 </span>
               )}
-              <span className="text-[10px] font-medium">{locale === 'ar' ? 'السلة' : 'Cart'}</span>
+              <span className="text-[10px] font-medium">{t('header.cart')}</span>
             </Link>
           </li>
           <li>
@@ -320,7 +320,7 @@ export function Header({
               className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-brand-mauve transition-colors"
             >
               <Menu className="h-5 w-5" />
-              <span className="text-[10px] font-medium">{locale === 'ar' ? 'القائمة' : 'Menu'}</span>
+              <span className="text-[10px] font-medium">{t('header.mobileMenu')}</span>
             </button>
           </li>
         </ul>

@@ -101,7 +101,7 @@ export function CartDrawer({ locale }: { locale: string }) {
                 <Link href="/cart">{t('title')}</Link>
               </Button>
               <Button asChild onClick={closeCart} variant="ghost" className="w-full rounded-none">
-                <Link href="/shop">{locale === 'ar' ? 'متابعة التسوق' : 'Continue Shopping'}</Link>
+                <Link href="/shop">{t('continueShopping')}</Link>
               </Button>
             </div>
           </>
