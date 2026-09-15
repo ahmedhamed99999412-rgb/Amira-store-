@@ -159,7 +159,8 @@ export const useWishlistStore = create<WishlistState>()(
           const serverItems = normalizeWishlistItems(data.items || []);
           const localItems = normalizeWishlistItems(get().items);
 
-          if (mergeLocal && localItems.length > 0) {
+          const shouldMerge = mergeLocal || isAuthenticated;
+          if (shouldMerge && localItems.length > 0) {
             const serverIds = new Set(serverItems.map((item) => item.productId));
             const missing = localItems.filter((item) => !serverIds.has(item.productId));
             if (missing.length > 0) {
