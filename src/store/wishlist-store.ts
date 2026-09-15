@@ -50,7 +50,8 @@ function currentLocale() {
   return document.documentElement.lang || document.querySelector('[lang]')?.getAttribute('lang') || 'ar';
 }
 
-function normalizeWishlistItems(items: ServerWishlistItem[]): WishlistItem[] {
+function normalizeWishlistItems(items: ServerWishlistItem[] | null | undefined): WishlistItem[] {
+  if (!items || !Array.isArray(items)) return [];
   return items
     .map((item) => ({
       productId: item.productId || item.id || '',
@@ -190,19 +191,25 @@ export const useWishlistStore = create<WishlistState>()(
       name: 'amira-wishlist',
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
-        if (state) {
-          // Preserve mutations that may have happened before async persistence
-          // rehydration completed, while retaining older persisted favorites.
-          const persistedItems = normalizeWishlistItems(state.items);
-          const inMemoryItems = normalizeWishlistItems(useWishlistStore.getState().items);
-          const byProductId = new Map<string, WishlistItem>();
-          for (const item of persistedItems) byProductId.set(item.productId, item);
-          for (const item of inMemoryItems) byProductId.set(item.productId, item);
-          const items = Array.from(byProductId.values());
+        try {
+          if (state) {
+            // Preserve mutations that may have happened before async persistence
+            // rehydration completed, while retaining older persisted favorites.
+            const persistedItems = normalizeWishlistItems(state.items);
+            const inMemoryItems = normalizeWishlistItems(useWishlistStore.getState().items);
+            const byProductId = new Map<string, WishlistItem>();
+            for (const item of persistedItems) byProductId.set(item.productId, item);
+            for (const item of inMemoryItems) byProductId.set(item.productId, item);
+            const items = Array.from(byProductId.values());
 
-          // Use Zustand's setter so subscribers are notified that persisted
-          // state is ready instead of mutating the callback state object silently.
-          useWishlistStore.setState({ items, hydrated: true });
+            // Use Zustand's setter so subscribers are notified that persisted
+            // state is ready instead of mutating the callback state object silently.
+            useWishlistStore.setState({ items, hydrated: true });
+          } else {
+            useWishlistStore.setState({ hydrated: true });
+          }
+        } catch {
+          useWishlistStore.setState({ hydrated: true });
         }
       },
     }
