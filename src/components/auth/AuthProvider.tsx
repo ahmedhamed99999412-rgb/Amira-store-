@@ -37,6 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
+        if (data.user) {
+          const locale = typeof document !== 'undefined' ? (document.documentElement.lang || 'ar') : 'ar';
+          void useWishlistStore.getState().syncFromServer(locale, true, true);
+        }
       } else {
         setUser(null);
       }

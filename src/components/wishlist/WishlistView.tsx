@@ -1,5 +1,6 @@
 'use client';
 
+import { useAuth } from '@/components/auth/AuthProvider';
 import { useWishlistStore } from '@/store/wishlist-store';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
@@ -14,6 +15,7 @@ function useHydrated() {
 
 export function WishlistView({ locale }: { locale: string }) {
   const { items, hydrated } = useWishlistStore();
+  const { user } = useAuth();
   const t = useTranslations('wishlist');
   const mounted = useHydrated();
   const itemCount = items.length;
@@ -23,7 +25,7 @@ export function WishlistView({ locale }: { locale: string }) {
     // Always refresh on the wishlist page so stock, prices, active state, and
     // other product metadata are authoritative after a refresh. The store
     // ignores stale responses that overlap an in-flight local mutation.
-    void useWishlistStore.getState().syncFromServer(locale, false, true);
+    void useWishlistStore.getState().syncFromServer(locale, Boolean(user), true);
   }, [mounted, hydrated, locale]);
 
   if (!mounted || !hydrated) {
