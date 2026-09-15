@@ -99,6 +99,7 @@ export const useWishlistStore = create<WishlistState>()(
 
         try {
           await operation;
+          ++wishlistMutationVersion;
         } catch {
           set((state) => ({
             items: exists
