@@ -140,7 +140,7 @@ export default async function ProductPage({
               </TabsContent>
               <TabsContent value="reviews" className="pt-6">
                 <ReviewsSection
-                  productSlug={slug}
+                  productId={product.id}
                   reviews={product.reviews}
                   avgRating={product.avgRating}
                   reviewCount={product.reviewCount}

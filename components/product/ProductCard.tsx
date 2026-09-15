@@ -63,7 +63,6 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
         comparePrice: product.comparePrice,
         totalStock: product.totalStock,
         hasVariants: product.hasVariants,
-        variantMode: product.variantMode,
         reviewCount: product.reviewCount,
         avgRating: product.avgRating,
       });
