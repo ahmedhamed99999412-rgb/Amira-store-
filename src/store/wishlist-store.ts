@@ -22,7 +22,7 @@ type ServerWishlistItem = WishlistItem & { id?: string };
 type WishlistState = {
   items: WishlistItem[];
   hydrated: boolean;
-  toggleItem: (item: WishlistItem) => boolean;
+  toggleItem: (item: WishlistItem) => Promise<boolean>;
   removeItem: (productId: string) => void;
   hasItem: (productId: string) => boolean;
   clear: () => void;
@@ -76,7 +76,7 @@ export const useWishlistStore = create<WishlistState>()(
       items: [],
       hydrated: false,
 
-      toggleItem: (item) => {
+      toggleItem: async (item) => {
         ++wishlistMutationVersion;
         const exists = get().items.some((current) => current.productId === item.productId);
         const operation = queueWishlistRequest(item.productId, async () => {
@@ -96,16 +96,19 @@ export const useWishlistStore = create<WishlistState>()(
             : [...state.items.filter((current) => current.productId !== item.productId), item],
         }));
 
-        void operation.then(() => {
-          // A concurrent wishlist GET can finish while this mutation is in flight
-          // and return the pre-mutation server state. Advance the mutation version
-          // after success and re-sync so an older GET cannot overwrite the mutation.
-          ++wishlistMutationVersion;
-          void useWishlistStore.getState().syncFromServer(currentLocale(), false, false);
-        }).catch(() => {
-          // On failure, restore the authoritative server state.
-          void useWishlistStore.getState().syncFromServer(currentLocale(), false, false);
-        });
+        await operation
+          .then(() => {
+            // A concurrent wishlist GET can finish while this mutation is in flight
+            // and return the pre-mutation server state. Advance the mutation version
+            // after success and re-sync so an older GET cannot overwrite the mutation.
+            ++wishlistMutationVersion;
+            void useWishlistStore.getState().syncFromServer(currentLocale(), false, false);
+          })
+          .catch(() => {
+            // On failure, restore the authoritative server state.
+            void useWishlistStore.getState().syncFromServer(currentLocale(), false, false);
+            throw new Error('Wishlist mutation failed');
+          });
 
         return !exists;
       },
@@ -120,12 +123,14 @@ export const useWishlistStore = create<WishlistState>()(
           });
           if (!response.ok) throw new Error('Wishlist remove failed');
           return response;
-        }).then(() => {
-          ++wishlistMutationVersion;
-          void useWishlistStore.getState().syncFromServer(currentLocale(), false, false);
-        }).catch(() => {
-          void useWishlistStore.getState().syncFromServer(currentLocale(), false, false);
-        });
+        })
+          .then(() => {
+            ++wishlistMutationVersion;
+            void useWishlistStore.getState().syncFromServer(currentLocale(), false, false);
+          })
+          .catch(() => {
+            void useWishlistStore.getState().syncFromServer(currentLocale(), false, false);
+          });
 
         set((state) => ({ items: state.items.filter((item) => item.productId !== productId) }));
       },
@@ -135,10 +140,12 @@ export const useWishlistStore = create<WishlistState>()(
       getCount: () => get().items.length,
 
       syncFromServer: async (locale, isAuthenticated, mergeLocal = false) => {
-        void isAuthenticated;
         const syncId = ++latestWishlistSync;
         const syncMutationVersion = wishlistMutationVersion;
         try {
+          const pendingMutations = Array.from(wishlistRequestQueues.values());
+          if (pendingMutations.length > 0) await Promise.allSettled(pendingMutations);
+
           const response = await fetch('/api/wishlist', {
             credentials: 'include',
             headers: { 'x-locale': locale },
@@ -148,6 +155,14 @@ export const useWishlistStore = create<WishlistState>()(
           const data = (await response.json()) as { items?: ServerWishlistItem[] };
           const serverItems = normalizeWishlistItems(data.items || []);
           const localItems = normalizeWishlistItems(get().items);
+
+          // A guest wishlist is primarily local state. Do not erase it when the
+          // server has no guest row yet (or a transient request returns an empty
+          // list). The merge path below will persist missing items server-side.
+          if (!isAuthenticated && !mergeLocal && serverItems.length === 0 && localItems.length > 0) {
+            set({ items: localItems });
+            return;
+          }
 
           if (mergeLocal && localItems.length > 0) {
             const serverIds = new Set(serverItems.map((item) => item.productId));
@@ -176,11 +191,18 @@ export const useWishlistStore = create<WishlistState>()(
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
         if (state) {
-          // Use Zustand's setter so subscribers (ProductCard/ServerStateSync) are
-          // notified that persisted state is ready. Direct mutation leaves
-          // hydrated subscribers stuck on the pre-hydration value.
-          state.items = normalizeWishlistItems(state.items);
-          useWishlistStore.setState({ items: state.items, hydrated: true });
+          // Preserve mutations that may have happened before async persistence
+          // rehydration completed, while retaining older persisted favorites.
+          const persistedItems = normalizeWishlistItems(state.items);
+          const inMemoryItems = normalizeWishlistItems(useWishlistStore.getState().items);
+          const byProductId = new Map<string, WishlistItem>();
+          for (const item of persistedItems) byProductId.set(item.productId, item);
+          for (const item of inMemoryItems) byProductId.set(item.productId, item);
+          const items = Array.from(byProductId.values());
+
+          // Use Zustand's setter so subscribers are notified that persisted
+          // state is ready instead of mutating the callback state object silently.
+          useWishlistStore.setState({ items, hydrated: true });
         }
       },
     }
