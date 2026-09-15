@@ -26,6 +26,7 @@ export type ProductCardData = {
 
 export function ProductCard({ product, locale }: { product: ProductCardData; locale: string }) {
   const t = useTranslations('product');
+  const tCommon = useTranslations('common');
   const toggleWishlistStore = useWishlistStore((s) => s.toggleItem);
   // Subscribe directly to the items array. This makes the heart react immediately
   // to persisted Zustand hydration and server synchronization after a full refresh.

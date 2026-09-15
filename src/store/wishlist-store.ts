@@ -13,6 +13,7 @@ type WishlistItem = {
   price: number;
   comparePrice?: number | null;
   totalStock?: number;
+  hasVariants?: boolean;
   reviewCount?: number;
   avgRating?: number;
 };
