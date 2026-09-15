@@ -52,7 +52,7 @@ function resolveAction(body: unknown): 'add' | 'remove' | undefined {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ productId: string> }>
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
     const { productId } = await params;
@@ -104,7 +104,7 @@ export async function POST(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ productId: string> }>
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
     const { productId } = await params;
