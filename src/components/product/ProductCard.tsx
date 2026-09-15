@@ -1,0 +1,198 @@
+'use client';
+
+import { formatCurrency } from '@/lib/currency';
+import { useTranslations } from 'next-intl';
+import { Link, useRouter } from '@/i18n/routing';
+import { Heart, ShoppingBag } from 'lucide-react';
+import { toast } from 'sonner';
+import { useWishlistStore } from '@/store/wishlist-store';
+import { useCartStore } from '@/store/cart-store';
+
+export type ProductCardData = {
+  id: string;
+  slug: string;
+  sku: string;
+  price: number;
+  comparePrice: number | null;
+  name: string;
+  shortDescription: string;
+  category: string;
+  image: string | null;
+  totalStock?: number;
+  hasVariants?: boolean;
+  reviewCount: number;
+  avgRating: number;
+};
+
+export function ProductCard({ product, locale }: { product: ProductCardData; locale: string }) {
+  const t = useTranslations('product');
+  const toggleWishlistStore = useWishlistStore((s) => s.toggleItem);
+  // Subscribe directly to the items array. This makes the heart react immediately
+  // to persisted Zustand hydration and server synchronization after a full refresh.
+  const wished = useWishlistStore((s) => s.items.some((item) => item.productId === product.id));
+  const addItemToCart = useCartStore((s) => s.addItem);
+  const router = useRouter();
+
+  const discount =
+    product.comparePrice && product.comparePrice > product.price
+      ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
+      : 0;
+
+  // Unknown stock must never be presented as zero stock. Public product
+  // queries provide a number; optionality is only for persisted/partial
+  // wishlist snapshots during hydration.
+  const stockKnown = typeof product.totalStock === 'number';
+  const inStock = !stockKnown || product.totalStock! > 0;
+  const lowStock = stockKnown && product.totalStock! > 0 && product.totalStock! < 10;
+
+  function toggleWishlistHandler(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const added = toggleWishlistStore({
+      productId: product.id,
+      slug: product.slug,
+      sku: product.sku,
+      name: product.name,
+      shortDescription: product.shortDescription,
+      category: product.category,
+      image: product.image,
+      price: product.price,
+      comparePrice: product.comparePrice,
+      totalStock: product.totalStock,
+      hasVariants: product.hasVariants,
+      reviewCount: product.reviewCount,
+      avgRating: product.avgRating,
+    });
+    toast.success(added ? t('addToWishlist') : t('removedFromWishlist'));
+  }
+
+  function addToCartHandler(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!inStock) return;
+
+    if (product.hasVariants) {
+      router.push(`/product/${product.slug}`);
+      return;
+    }
+
+    addItemToCart({
+      productId: product.id,
+      variantId: null,
+      slug: product.slug,
+      name: product.name,
+      image: product.image,
+      price: product.price,
+      quantity: 1,
+    });
+    toast.success(t('addToCart'));
+  }
+
+
+  return (
+    <div className="group block min-w-0">
+      <div className="relative overflow-hidden bg-muted aspect-[4/5] w-full mb-2 rounded-md shadow-sm hover:shadow-md transition-shadow">
+          {product.image ? (
+            <img
+              src={product.image}
+              alt={product.name}
+              loading="lazy"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              <span className="text-xs">{product.name.charAt(0)}</span>
+            </div>
+          )}
+
+          <div className="absolute top-2 start-2 flex flex-col gap-1 z-10">
+            {discount > 0 && (
+              <span className="bg-brand-mauve text-white text-[10px] font-bold px-2 py-1 rounded">
+                -{discount}%
+              </span>
+            )}
+            {lowStock && (
+              <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded">
+                {t('lowStock')}
+              </span>
+            )}
+            {!inStock && (
+              <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded">
+                {t('outOfStock')}
+              </span>
+            )}
+          </div>
+
+          <button
+            onClick={toggleWishlistHandler}
+            className="absolute top-2 end-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors z-10"
+            aria-label={t('addToWishlist')}
+          >
+            <Heart
+              className={`h-4 w-4 ${wished ? 'fill-brand-mauve text-brand-mauve' : 'text-brand-charcoal'}`}
+            />
+          </button>
+        </div>
+
+      <Link href={`/product/${product.slug}`} className="block min-w-0">
+        <div className="space-y-1 min-w-0">
+          {product.category && (
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">
+              {product.category}
+            </p>
+          )}
+          <h3 className="text-sm font-medium text-brand-charcoal line-clamp-2 min-h-[2.5rem] group-hover:text-brand-mauve transition-colors">
+            {product.name}
+          </h3>
+
+          {product.reviewCount > 0 && (
+            <div className="flex items-center gap-1 min-w-0">
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <svg
+                    key={star}
+                    className={`h-3 w-3 ${
+                      star <= Math.round(product.avgRating)
+                        ? 'fill-amber-400 text-amber-400'
+                        : 'text-muted-foreground/30'
+                    }`}
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <span className="text-[10px] text-muted-foreground">({product.reviewCount})</span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 pt-1 flex-wrap min-w-0">
+            <span className="text-sm font-bold text-brand-charcoal truncate">
+              {formatCurrency(product.price, locale)}
+            </span>
+            {product.comparePrice && product.comparePrice > product.price && (
+              <span className="text-xs text-muted-foreground line-through truncate">
+                {formatCurrency(product.comparePrice, locale)}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+
+      {inStock ? (
+        <button
+          onClick={addToCartHandler}
+          className="w-full h-10 sm:h-11 mt-2 px-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 rounded-md transition-opacity hover:opacity-90 shrink-0"
+          style={{ backgroundColor: '#1A1A1A', color: '#FFFFFF' }}
+        >
+          <ShoppingBag className="h-4 w-4 shrink-0" />
+          <span className="truncate">{product.hasVariants ? t('viewOptions') : t('addToCart')}</span>
+        </button>
+      ) : (
+        <div className="w-full h-10 sm:h-11 mt-2 px-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center rounded-md bg-muted text-muted-foreground shrink-0">
+          <span className="truncate">{t('outOfStock')}</span>
+        </div>
+      )}
+    </div>
+  );
+}
