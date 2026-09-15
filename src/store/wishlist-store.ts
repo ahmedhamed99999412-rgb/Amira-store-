@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { toast } from 'sonner';
 
 type WishlistItem = {
   productId: string;
@@ -23,7 +22,7 @@ type ServerWishlistItem = WishlistItem & { id?: string };
 type WishlistState = {
   items: WishlistItem[];
   hydrated: boolean;
-  toggleItem: (item: WishlistItem) => Promise<boolean>;
+  toggleItem: (item: WishlistItem) => boolean;
   removeItem: (productId: string) => void;
   hasItem: (productId: string) => boolean;
   clear: () => void;
@@ -64,6 +63,7 @@ function normalizeWishlistItems(items: ServerWishlistItem[]): WishlistItem[] {
       price: typeof item.price === 'number' ? item.price : 0,
       comparePrice: typeof item.comparePrice === 'number' ? item.comparePrice : null,
       totalStock: typeof item.totalStock === 'number' ? item.totalStock : undefined,
+      hasVariants: typeof item.hasVariants === 'boolean' ? item.hasVariants : undefined,
       reviewCount: typeof item.reviewCount === 'number' ? item.reviewCount : undefined,
       avgRating: typeof item.avgRating === 'number' ? item.avgRating : undefined,
     }))
@@ -76,9 +76,19 @@ export const useWishlistStore = create<WishlistState>()(
       items: [],
       hydrated: false,
 
-      toggleItem: async (item) => {
+      toggleItem: (item) => {
         ++wishlistMutationVersion;
         const exists = get().items.some((current) => current.productId === item.productId);
+        const operation = queueWishlistRequest(item.productId, async () => {
+          const response = await fetch(`/api/wishlist/${item.productId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-locale': currentLocale() },
+            credentials: 'include',
+            body: JSON.stringify({ action: exists ? 'remove' : 'add' }),
+          });
+          if (!response.ok) throw new Error('Wishlist mutation failed');
+          return response;
+        });
 
         set((state) => ({
           items: exists
@@ -86,29 +96,16 @@ export const useWishlistStore = create<WishlistState>()(
             : [...state.items.filter((current) => current.productId !== item.productId), item],
         }));
 
-        const operation = queueWishlistRequest(item.productId, async () => {
-          const response = await fetch(`/api/wishlist/${item.productId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-locale': currentLocale() },
-            credentials: 'include',
-            body: JSON.stringify({ action: exists ? 'remove' : 'add', productId: item.productId }),
-          });
-          if (!response.ok) throw new Error('Wishlist mutation failed');
-          return response;
-        });
-
-        try {
-          await operation;
+        void operation.then(() => {
+          // A concurrent wishlist GET can finish while this mutation is in flight
+          // and return the pre-mutation server state. Advance the mutation version
+          // after success and re-sync so an older GET cannot overwrite the mutation.
           ++wishlistMutationVersion;
-        } catch {
-          set((state) => ({
-            items: exists
-              ? [...state.items.filter((current) => current.productId !== item.productId), item]
-              : state.items.filter((current) => current.productId !== item.productId),
-          }));
-          void useWishlistStore.getState().syncFromServer(currentLocale(), Boolean(get().items.length), false);
-          throw new Error('Wishlist mutation failed');
-        }
+          void useWishlistStore.getState().syncFromServer(currentLocale(), false, false);
+        }).catch(() => {
+          // On failure, restore the authoritative server state.
+          void useWishlistStore.getState().syncFromServer(currentLocale(), false, false);
+        });
 
         return !exists;
       },
@@ -123,6 +120,9 @@ export const useWishlistStore = create<WishlistState>()(
           });
           if (!response.ok) throw new Error('Wishlist remove failed');
           return response;
+        }).then(() => {
+          ++wishlistMutationVersion;
+          void useWishlistStore.getState().syncFromServer(currentLocale(), false, false);
         }).catch(() => {
           void useWishlistStore.getState().syncFromServer(currentLocale(), false, false);
         });
@@ -135,18 +135,7 @@ export const useWishlistStore = create<WishlistState>()(
       getCount: () => get().items.length,
 
       syncFromServer: async (locale, isAuthenticated, mergeLocal = false) => {
-        // Wait for any pending wishlist mutations to complete before fetching
-        // server state. This prevents a race condition where syncFromServer
-        // overwrites an optimistic update whose POST hasn't finished yet.
-        const pending = Array.from(wishlistRequestQueues.values());
-        if (pending.length > 0) {
-          try {
-            await Promise.all(pending);
-          } catch {
-            // Individual mutation error handlers already deal with failures
-          }
-        }
-
+        void isAuthenticated;
         const syncId = ++latestWishlistSync;
         const syncMutationVersion = wishlistMutationVersion;
         try {
@@ -160,8 +149,7 @@ export const useWishlistStore = create<WishlistState>()(
           const serverItems = normalizeWishlistItems(data.items || []);
           const localItems = normalizeWishlistItems(get().items);
 
-          const shouldMerge = mergeLocal || isAuthenticated;
-          if (shouldMerge && localItems.length > 0) {
+          if (mergeLocal && localItems.length > 0) {
             const serverIds = new Set(serverItems.map((item) => item.productId));
             const missing = localItems.filter((item) => !serverIds.has(item.productId));
             if (missing.length > 0) {
@@ -169,7 +157,7 @@ export const useWishlistStore = create<WishlistState>()(
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-locale': locale },
                 credentials: 'include',
-                body: JSON.stringify({ action: 'add', productId: item.productId }),
+                body: JSON.stringify({ action: 'add' }),
               })));
               if (syncId !== latestWishlistSync || syncMutationVersion !== wishlistMutationVersion || !results.every((result) => result.ok)) return;
               return get().syncFromServer(locale, isAuthenticated, false);
@@ -188,6 +176,9 @@ export const useWishlistStore = create<WishlistState>()(
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
         if (state) {
+          // Use Zustand's setter so subscribers (ProductCard/ServerStateSync) are
+          // notified that persisted state is ready. Direct mutation leaves
+          // hydrated subscribers stuck on the pre-hydration value.
           state.items = normalizeWishlistItems(state.items);
           useWishlistStore.setState({ items: state.items, hydrated: true });
         }
