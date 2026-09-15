@@ -23,7 +23,7 @@ export function WishlistView({ locale }: { locale: string }) {
     // Always refresh on the wishlist page so stock, prices, active state, and
     // other product metadata are authoritative after a refresh. The store
     // ignores stale responses that overlap an in-flight local mutation.
-    void useWishlistStore.getState().syncFromServer(locale, false, false);
+    void useWishlistStore.getState().syncFromServer(locale, false, true);
   }, [mounted, hydrated, locale]);
 
   if (!mounted || !hydrated) {
