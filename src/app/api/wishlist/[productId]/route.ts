@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/session';
 import { cookies } from 'next/headers';
-import { apiErrorResponse, getApiLocale, internalServerErrorResponse, safeJsonBody } from '@/lib/api-errors';
+import { wishlistActionSchema } from '@/lib/validation/wishlist';
+import { apiErrorResponse, getApiLocale, internalServerErrorResponse } from '@/lib/api-errors';
 import { isUniqueConstraintError } from '@/lib/prisma-errors';
 
 async function getOrCreateWishlist() {
@@ -42,12 +43,12 @@ async function getOrCreateWishlist() {
 }
 
 export async function POST(
-  _req: NextRequest,
-  { params }: { params: Promise<{ productId: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<{ productId: string> }>
 ) {
   try {
     const { productId } = await params;
-    const locale = getApiLocale(_req.headers.get('x-locale'));
+    const locale = getApiLocale(req.headers.get('x-locale'));
 
     const product = await db.product.findFirst({
       where: { id: productId, isActive: true, isDeleted: false },
@@ -56,62 +57,37 @@ export async function POST(
       return apiErrorResponse('PRODUCT_NOT_FOUND', 404, locale);
     }
 
+    const body = await req.json().catch(() => null);
+    const parsed = wishlistActionSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return apiErrorResponse('INVALID_REQUEST_BODY', 400, locale);
+    }
+
+    const { action } = parsed.data;
     const wishlist = await getOrCreateWishlist();
-    const body = await safeJsonBody(_req);
-    if (body !== null && (typeof body !== 'object' || Array.isArray(body))) {
-      return apiErrorResponse('INVALID_REQUEST_BODY', 400, locale);
-    }
-
-    const action = body && typeof body === 'object' && !Array.isArray(body) && 'action' in body
-      ? (body as { action?: unknown }).action
-      : undefined;
-
-    if (action !== undefined && action !== 'add' && action !== 'remove') {
-      return apiErrorResponse('INVALID_REQUEST_BODY', 400, locale);
-    }
 
     if (action === 'remove') {
       await db.wishlistItem.deleteMany({ where: { wishlistId: wishlist.id, productId } });
       return NextResponse.json({ ok: true, action: 'removed' });
     }
 
-    if (action === 'add') {
-      try {
-        await db.wishlistItem.create({ data: { wishlistId: wishlist.id, productId } });
-      } catch (error) {
-        if (!isUniqueConstraintError(error)) throw error;
-      }
-      return NextResponse.json({ ok: true, action: 'added' });
+    try {
+      await db.wishlistItem.create({ data: { wishlistId: wishlist.id, productId } });
+    } catch (error) {
+      if (!isUniqueConstraintError(error)) throw error;
     }
-
-    const existing = await db.wishlistItem.findUnique({
-      where: {
-        wishlistId_productId: {
-          wishlistId: wishlist.id,
-          productId,
-        },
-      },
-    });
-
-    if (existing) {
-      await db.wishlistItem.delete({ where: { id: existing.id } });
-      return NextResponse.json({ ok: true, action: 'removed' });
-    }
-
-    await db.wishlistItem.create({
-      data: { wishlistId: wishlist.id, productId },
-    });
 
     return NextResponse.json({ ok: true, action: 'added' });
   } catch (error: unknown) {
     console.error('POST /api/wishlist/[productId] error:', error);
-    return internalServerErrorResponse(getApiLocale(_req.headers.get('x-locale')));
+    return internalServerErrorResponse(getApiLocale(req.headers.get('x-locale')));
   }
 }
 
 export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ productId: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<{ productId: string> }>
 ) {
   try {
     const { productId } = await params;
@@ -124,6 +100,6 @@ export async function DELETE(
     return NextResponse.json({ ok: true });
   } catch (error: unknown) {
     console.error('DELETE /api/wishlist/[productId] error:', error);
-    return internalServerErrorResponse(getApiLocale(_req.headers.get('x-locale')));
+    return internalServerErrorResponse(getApiLocale(req.headers.get('x-locale')));
   }
 }

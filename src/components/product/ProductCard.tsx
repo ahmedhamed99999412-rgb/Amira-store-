@@ -45,25 +45,29 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
   const inStock = !stockKnown || product.totalStock! > 0;
   const lowStock = stockKnown && product.totalStock! > 0 && product.totalStock! < 10;
 
-  function toggleWishlistHandler(e: React.MouseEvent) {
+  async function toggleWishlistHandler(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    const added = toggleWishlistStore({
-      productId: product.id,
-      slug: product.slug,
-      sku: product.sku,
-      name: product.name,
-      shortDescription: product.shortDescription,
-      category: product.category,
-      image: product.image,
-      price: product.price,
-      comparePrice: product.comparePrice,
-      totalStock: product.totalStock,
-      hasVariants: product.hasVariants,
-      reviewCount: product.reviewCount,
-      avgRating: product.avgRating,
-    });
-    toast.success(added ? t('addToWishlist') : t('removedFromWishlist'));
+    try {
+      const added = await toggleWishlistStore({
+        productId: product.id,
+        slug: product.slug,
+        sku: product.sku,
+        name: product.name,
+        shortDescription: product.shortDescription,
+        category: product.category,
+        image: product.image,
+        price: product.price,
+        comparePrice: product.comparePrice,
+        totalStock: product.totalStock,
+        hasVariants: product.hasVariants,
+        reviewCount: product.reviewCount,
+        avgRating: product.avgRating,
+      });
+      toast.success(added ? t('addToWishlist') : t('removedFromWishlist'));
+    } catch {
+      toast.error(tCommon('error'));
+    }
   }
 
   function addToCartHandler(e: React.MouseEvent) {

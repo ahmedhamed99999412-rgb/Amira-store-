@@ -111,15 +111,19 @@ export function ProductDetailClient({
     }
   }
 
-  function toggleWishlistHandler() {
-    const added = toggleWishlist({
-      productId: product.id,
-      slug: product.slug,
-      name: product.name,
-      image: product.images[0]?.url || null,
-      price: finalPrice,
-    });
-    toast.success(added ? t('addToWishlist') : t('removedFromWishlist'));
+  async function toggleWishlistHandler() {
+    try {
+      const added = await toggleWishlist({
+        productId: product.id,
+        slug: product.slug,
+        name: product.name,
+        image: product.images[0]?.url || null,
+        price: finalPrice,
+      });
+      toast.success(added ? t('addToWishlist') : t('removedFromWishlist'));
+    } catch {
+      toast.error('Failed to update wishlist');
+    }
   }
 
   return (
