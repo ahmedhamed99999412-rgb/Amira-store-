@@ -122,7 +122,7 @@ export function ProductDetailClient({
       });
       toast.success(added ? t('addToWishlist') : t('removedFromWishlist'));
     } catch {
-      toast.error('Failed to update wishlist');
+      toast.error(tCommon('error'));
     }
   }
 

@@ -106,7 +106,7 @@ export const useWishlistStore = create<WishlistState>()(
               : state.items.filter((current) => current.productId !== item.productId),
           }));
           void useWishlistStore.getState().syncFromServer(currentLocale(), Boolean(get().items.length), false);
-          return exists;
+          throw new Error('Wishlist mutation failed');
         }
 
         return !exists;
@@ -134,6 +134,18 @@ export const useWishlistStore = create<WishlistState>()(
       getCount: () => get().items.length,
 
       syncFromServer: async (locale, isAuthenticated, mergeLocal = false) => {
+        // Wait for any pending wishlist mutations to complete before fetching
+        // server state. This prevents a race condition where syncFromServer
+        // overwrites an optimistic update whose POST hasn't finished yet.
+        const pending = Array.from(wishlistRequestQueues.values());
+        if (pending.length > 0) {
+          try {
+            await Promise.all(pending);
+          } catch {
+            // Individual mutation error handlers already deal with failures
+          }
+        }
+
         const syncId = ++latestWishlistSync;
         const syncMutationVersion = wishlistMutationVersion;
         try {
