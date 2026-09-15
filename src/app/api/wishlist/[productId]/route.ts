@@ -42,9 +42,17 @@ async function getOrCreateWishlist() {
   return wishlist;
 }
 
+function resolveAction(body: unknown): 'add' | 'remove' | undefined {
+  if (body && typeof body === 'object' && !Array.isArray(body)) {
+    const action = (body as { action?: unknown }).action;
+    if (action === 'add' || action === 'remove') return action;
+  }
+  return undefined;
+}
+
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ productId: string }> }
+  { params }: { params: Promise<{ productId: string> }>
 ) {
   try {
     const { productId } = await params;
@@ -58,13 +66,22 @@ export async function POST(
     }
 
     const body = await req.json().catch(() => null);
-    const parsed = wishlistActionSchema.safeParse(body);
 
-    if (!parsed.success) {
-      return apiErrorResponse('INVALID_REQUEST_BODY', 400, locale);
+    let action: 'add' | 'remove' | undefined;
+
+    if (body !== null) {
+      const parsed = wishlistActionSchema.safeParse(body);
+      if (parsed.success) {
+        action = parsed.data.action;
+      } else {
+        action = resolveAction(body);
+      }
     }
 
-    const { action } = parsed.data;
+    if (action === undefined) {
+      action = 'add';
+    }
+
     const wishlist = await getOrCreateWishlist();
 
     if (action === 'remove') {
@@ -87,7 +104,7 @@ export async function POST(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ productId: string }> }
+  { params }: { params: Promise<{ productId: string> }>
 ) {
   try {
     const { productId } = await params;
