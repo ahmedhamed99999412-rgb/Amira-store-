@@ -1,0 +1,383 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  phone        String    @unique
+  fullName     String?
+  passwordHash String
+  role         String    @default("CUSTOMER")
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  addresses    Address[]
+  carts        Cart?
+  orders       Order[]
+  reviews      Review[]
+  wishlists    Wishlist?
+
+  @@map("users")
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String
+  fullName    String
+  phone       String
+  street      String
+  city        String
+  governorate String
+  landmarks   String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+model Category {
+  id           String                @id @default(cuid())
+  parentId     String?
+  slug         String                @unique
+  order        Int                   @default(0)
+  isActive     Boolean               @default(true)
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  parent       Category?             @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children     Category[]            @relation("CategoryTree")
+  image        CategoryImage?
+  translations CategoryTranslation[]
+  products     Product[]
+
+  @@index([parentId])
+  @@map("categories")
+}
+
+model CategoryTranslation {
+  id          String   @id @default(cuid())
+  categoryId  String
+  locale      String
+  name        String
+  description String?
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, locale])
+  @@map("category_translations")
+}
+
+model CategoryImage {
+  id         String   @id @default(cuid())
+  categoryId String   @unique
+  base64Data String
+  mimeType   String
+  fileSize   Int
+  width      Int?
+  height     Int?
+  createdAt  DateTime @default(now())
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@map("category_images")
+}
+
+model Product {
+  id               String               @id @default(cuid())
+  categoryId       String
+  slug             String               @unique
+  sku              String               @unique
+  price            Float
+  comparePrice     Float?
+  costPrice        Float?
+  differentPriceBySize Boolean           @default(false)
+  hasVariants      Boolean              @default(false)
+  isActive         Boolean              @default(true)
+  isFeatured       Boolean              @default(false)
+  isDeleted        Boolean              @default(false)
+  deletedAt        DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  cartItems        CartItem[]
+  orderItems       OrderItem[]
+  images           ProductImage[]
+  tags             ProductTag[]
+  translations     ProductTranslation[]
+  variants         ProductVariant[]
+  category         Category             @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  relatedAsRelated RelatedProduct[]     @relation("RelatedToProduct")
+  relatedAsMain    RelatedProduct[]     @relation("ProductToRelated")
+  reviews          Review[]
+  wishlistItems    WishlistItem[]
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([isFeatured])
+  @@index([isDeleted])
+  @@map("products")
+}
+
+model ProductTranslation {
+  id               String  @id @default(cuid())
+  productId        String
+  locale           String
+  name             String
+  shortDescription String?
+  description      String?
+  metaTitle        String?
+  metaDescription  String?
+  product          Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, locale])
+  @@map("product_translations")
+}
+
+model ProductImage {
+  id         String   @id @default(cuid())
+  productId  String
+  base64Data String
+  mimeType   String
+  fileSize   Int
+  width      Int?
+  height     Int?
+  altAr      String?
+  altEn      String?
+  order      Int      @default(0)
+  isPrimary  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+model ProductVariant {
+  id              String      @id @default(cuid())
+  productId       String
+  size            String?
+  color           String?
+  colorHex        String?
+  stock           Int         @default(0)
+  sku             String?
+  regularPrice    Float?
+  salePrice       Float?
+  priceAdjustment Float       @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+  product         Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_variants")
+}
+
+model ProductTag {
+  id        String  @id @default(cuid())
+  productId String
+  locale    String
+  tag       String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, locale, tag])
+  @@map("product_tags")
+}
+
+model RelatedProduct {
+  id               String   @id @default(cuid())
+  productId        String
+  relatedProductId String
+  suggestedByAI    Boolean  @default(false)
+  isApproved       Boolean  @default(false)
+  reason           String?
+  createdAt        DateTime @default(now())
+  relatedProduct   Product  @relation("RelatedToProduct", fields: [relatedProductId], references: [id], onDelete: Cascade)
+  product          Product  @relation("ProductToRelated", fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, relatedProductId])
+  @@map("related_products")
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  productId  String
+  userId     String?
+  guestName  String
+  guestPhone String?
+  rating     Int
+  title      String?
+  comment    String?
+  isApproved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("reviews")
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String?
+  guestId   String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     CartItem[]
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@unique([guestId])
+  @@map("carts")
+}
+
+model CartItem {
+  id        String          @id @default(cuid())
+  cartId    String
+  productId String
+  variantId String?
+  quantity  Int
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cart      Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId, variantId])
+  @@map("cart_items")
+}
+
+model Wishlist {
+  id        String         @id @default(cuid())
+  userId    String?        @unique
+  guestId   String?        @unique
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  items     WishlistItem[]
+  user      User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("wishlists")
+}
+
+model WishlistItem {
+  id         String   @id @default(cuid())
+  wishlistId String
+  productId  String
+  createdAt  DateTime @default(now())
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+
+  @@unique([wishlistId, productId])
+  @@map("wishlist_items")
+}
+
+model Order {
+  id             String      @id @default(cuid())
+  orderNumber    String      @unique
+  userId         String?
+  guestName      String
+  guestPhone     String
+  guestAddress   String
+  governorate    String
+  city           String
+  landmarks      String?
+  guestNotes     String?
+  subtotal       Float
+  shippingCost   Float?
+  shippingStatus String      @default("MANUAL")
+  discount       Float       @default(0)
+  couponCode     String?
+  total          Float
+  status         String      @default("PENDING_CONFIRMATION")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  idempotencyKey String?     @unique
+  items          OrderItem[]
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([guestPhone])
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String          @id @default(cuid())
+  orderId         String
+  productId       String
+  variantId       String?
+  productNameAr   String
+  productNameEn   String
+  productSku      String
+  productPrice    Float
+  quantity        Int
+  productImage    String
+  stockAllocation String?
+  variant         ProductVariant? @relation(fields: [variantId], references: [id])
+  product         Product         @relation(fields: [productId], references: [id])
+  order           Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Coupon {
+  id         String    @id @default(cuid())
+  code       String    @unique
+  type       String
+  value      Float
+  minOrder   Float?
+  isActive   Boolean   @default(true)
+  expiresAt  DateTime?
+  usageLimit Int?
+  usedCount  Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("coupons")
+}
+
+model Banner {
+  id         String   @id @default(cuid())
+  type       String
+  base64Data String
+  mimeType   String
+  fileSize   Int      @default(0)
+  titleAr    String?
+  titleEn    String?
+  subtitleAr String?
+  subtitleEn String?
+  ctaTextAr  String?
+  ctaTextEn  String?
+  ctaLink    String?
+  order      Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([type])
+  @@map("banners")
+}
+
+model StoreSettings {
+  id                   String    @id @default("singleton")
+  whatsappNumber       String
+  storeNameAr          String
+  storeNameEn          String
+  email                String?
+  addressAr            String?
+  addressEn            String?
+  currency             String    @default("EGP")
+  announcementAr       String
+  announcementEn       String
+  updatedAt            DateTime  @updatedAt
+  facebookUrl          String?
+  instagramUrl         String?
+
+  @@map("store_settings")
+}
