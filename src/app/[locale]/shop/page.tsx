@@ -75,7 +75,7 @@ export default async function ShopPage({
           <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8">
             {/* Filters sidebar */}
             <aside className="hidden lg:block">
-              <Suspense>
+              <Suspense fallback={null}>
                 <ShopFilters locale={locale} />
               </Suspense>
             </aside>
@@ -89,7 +89,7 @@ export default async function ShopPage({
                     {locale === 'ar' ? 'فلترة' : 'Filters'}
                   </summary>
                   <div className="mt-2 p-4 border rounded">
-                    <Suspense>
+                    <Suspense fallback={null}>
                       <ShopFilters locale={locale} />
                     </Suspense>
                   </div>
@@ -98,7 +98,7 @@ export default async function ShopPage({
 
               {/* Sort bar (desktop) */}
               <div className="flex items-center justify-end mb-6">
-                <Suspense>
+                <Suspense fallback={null}>
                   <SortSelect locale={locale} current={sort} />
                 </Suspense>
               </div>
@@ -121,7 +121,7 @@ export default async function ShopPage({
               {/* Pagination */}
               {result.totalPages > 1 && (
                 <div className="mt-10 flex justify-center">
-                  <Suspense>
+                  <Suspense fallback={null}>
                     <PaginationWrapper
                       currentPage={result.page}
                       totalPages={result.totalPages}

@@ -3,6 +3,40 @@ import { Prisma } from '@prisma/client';
 import { unstable_cache } from 'next/cache';
 import { resolveDisplayComparePrice } from '@/lib/product-variants';
 
+// ============================================================
+// SAFETY GUARD
+// ============================================================
+// Every DB-backed query in this file is routed through safeQuery so a
+// transient database error (connection drop, pool exhaustion, timeout)
+// degrades to safe fallback data instead of throwing out of a Server
+// Component and turning into an HTTP 500 for the visitor. Callers get a
+// shape they can always render (empty list, null, zeroed pagination)
+// rather than a crashed page.
+async function safeQuery<T>(fn: () => Promise<T>, fallback: T, context: string): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    console.error(`[queries:${context}] query failed, serving fallback data`, error);
+    return fallback;
+  }
+}
+
+const DEFAULT_STORE_SETTINGS = {
+  id: 'singleton',
+  whatsappNumber: '',
+  storeNameAr: 'أميرا ستور',
+  storeNameEn: 'Amira Store',
+  email: null as string | null,
+  addressAr: null as string | null,
+  addressEn: null as string | null,
+  currency: 'EGP',
+  announcementAr: '',
+  announcementEn: '',
+  updatedAt: new Date(0),
+  facebookUrl: null as string | null,
+  instagramUrl: null as string | null,
+};
+
 // Reusable SQL: the lowest effective variant price (sale if available, else
 // regular, with priceAdjustment applied), falling back to the product's base
 // price when the product has no priced variants. Used by price-range filters
@@ -21,16 +55,23 @@ const lowestVariantDisplayPrice = Prisma.sql`COALESCE((
 // Get store settings (singleton record)
 const getStoreSettingsCached = unstable_cache(
   async () => {
-    const settings = await db.storeSettings.findUnique({ where: { id: 'singleton' } });
-    if (!settings) {
-      throw new Error('Store settings not found. Run db:seed.');
-    }
+    return safeQuery(
+      async () => {
+        const settings = await db.storeSettings.findUnique({ where: { id: 'singleton' } });
+        if (!settings) {
+          console.error('[queries:getStoreSettings] Store settings not found. Run db:seed.');
+          return DEFAULT_STORE_SETTINGS;
+        }
 
-    return {
-      ...settings,
-      announcementAr: settings.announcementAr,
-      announcementEn: settings.announcementEn,
-    };
+        return {
+          ...settings,
+          announcementAr: settings.announcementAr,
+          announcementEn: settings.announcementEn,
+        };
+      },
+      DEFAULT_STORE_SETTINGS,
+      'getStoreSettings'
+    );
   },
   ['amira-store-settings-v1'],
   { revalidate: 60 }
@@ -48,6 +89,7 @@ export async function getStoreSettings() {
 // Used for: Header navigation, Category circles on homepage
 const getMainCategoriesCached = unstable_cache(
   async (locale: string) => {
+    return safeQuery(async () => {
     const locales = locale === 'ar' ? ['ar'] : [locale, 'ar'];
     const categories = await db.category.findMany({
       where: { parentId: null, isActive: true },
@@ -88,6 +130,7 @@ const getMainCategoriesCached = unstable_cache(
           child.slug,
       })),
     }));
+    }, [], 'getMainCategories');
   },
   ['amira-main-categories-v2'],
   { revalidate: 60 }
@@ -104,14 +147,14 @@ export async function getMainCategories(locale: string) {
 
 // Get active hero banners (ordered)
 const getHeroBannersCached = unstable_cache(
-  async () => db.banner.findMany({
+  async () => safeQuery(() => db.banner.findMany({
     where: { type: 'HERO', isActive: true },
     select: {
       id: true, titleAr: true, titleEn: true, subtitleAr: true, subtitleEn: true,
       ctaTextAr: true, ctaTextEn: true, ctaLink: true, order: true,
     },
     orderBy: { order: 'asc' },
-  }),
+  }), [], 'getHeroBanners'),
   ['amira-hero-banners-v1'],
   { revalidate: 60 }
 );
@@ -122,14 +165,14 @@ export async function getHeroBanners() {
 
 // Get active promo banners (ordered)
 const getPromoBannersCached = unstable_cache(
-  async () => db.banner.findMany({
+  async () => safeQuery(() => db.banner.findMany({
     where: { type: 'PROMO', isActive: true },
     select: {
       id: true, titleAr: true, titleEn: true, subtitleAr: true, subtitleEn: true,
       ctaTextAr: true, ctaTextEn: true, ctaLink: true, order: true,
     },
     orderBy: { order: 'asc' },
-  }),
+  }), [], 'getPromoBanners'),
   ['amira-promo-banners-v1'],
   { revalidate: 60 }
 );
@@ -145,6 +188,7 @@ export async function getPromoBanners() {
 // Get featured products for "Trending Now" section.
 // Keep this as one SQL round-trip: the storefront only needs card data, not full Prisma relations.
 const getFeaturedProductsCached = unstable_cache(async (locale: string, limit: number = 12) => {
+  return safeQuery(async () => {
   const rows = await db.$queryRaw<Array<{
     id: string;
     slug: string;
@@ -223,6 +267,7 @@ const getFeaturedProductsCached = unstable_cache(async (locale: string, limit: n
     reviewCount: p.reviewCount,
     avgRating: p.avgRating ?? 0,
   }));
+  }, [], 'getFeaturedProducts');
 }, ['amira-featured-products-v3'], { revalidate: 1, tags: ['amira-products'] });
 
 export async function getFeaturedProducts(locale: string, limit: number = 12) {
@@ -235,6 +280,7 @@ export async function getFeaturedProducts(locale: string, limit: number = 12) {
 
 // Get a category by slug with full tree info (parent chain, children, products)
 const getCategoryBySlugCached = unstable_cache(async (slug: string, locale: string) => {
+  return safeQuery(async () => {
   const category = await db.category.findUnique({
     where: { slug },
     include: {
@@ -307,6 +353,7 @@ const getCategoryBySlugCached = unstable_cache(async (slug: string, locale: stri
     children,
     hasChildren: category.children.length > 0,
   };
+  }, null, 'getCategoryBySlug');
   }, ['amira-category-by-slug-v1'], { revalidate: 1 });
 
 export async function getCategoryBySlug(slug: string, locale: string) {
@@ -337,6 +384,7 @@ const getProductsByCategoryCached = unstable_cache(
     const offset = (safePage - 1) * safePageSize;
     const locales = locale === 'ar' ? ['ar'] : [locale, 'ar'];
 
+    return safeQuery(async () => {
     const orderSql =
       sort === 'price-asc'
         ? Prisma.sql`CASE WHEN p."differentPriceBySize" = true THEN (SELECT COALESCE(MIN(pv2."regularPrice" + COALESCE(pv2."priceAdjustment", 0)), p."price") FROM "product_variants" pv2 WHERE pv2."productId" = p."id" AND pv2."regularPrice" IS NOT NULL) ELSE p."price" END ASC, p."createdAt" DESC`
@@ -471,6 +519,7 @@ const getProductsByCategoryCached = unstable_cache(
       pageSize: safePageSize,
       totalPages: Math.ceil(total / safePageSize),
     };
+    }, { products: [], total: 0, page: safePage, pageSize: safePageSize, totalPages: 0 }, 'getProductsByCategory');
   },
   ['amira-products-by-category-v3'],
   { revalidate: 1, tags: ['amira-products'] }
@@ -516,6 +565,7 @@ const getAllProductsCached = unstable_cache(
     const offset = (safePage - 1) * safePageSize;
     const locales = locale === 'ar' ? ['ar'] : [locale, 'ar'];
 
+    return safeQuery(async () => {
     const orderSql =
       sort === 'price-asc'
         ? Prisma.sql`CASE WHEN p."differentPriceBySize" = true THEN (SELECT COALESCE(MIN(pv2."regularPrice" + COALESCE(pv2."priceAdjustment", 0)), p."price") FROM "product_variants" pv2 WHERE pv2."productId" = p."id" AND pv2."regularPrice" IS NOT NULL) ELSE p."price" END ASC, p."createdAt" DESC`
@@ -644,6 +694,7 @@ const getAllProductsCached = unstable_cache(
       pageSize: safePageSize,
       totalPages: Math.ceil(total / safePageSize),
     };
+    }, { products: [], total: 0, page: safePage, pageSize: safePageSize, totalPages: 0 }, 'getAllProducts');
   },
   ['amira-all-products-v3'],
   { revalidate: 1, tags: ['amira-products'] }
@@ -671,6 +722,7 @@ export async function getAllProducts(
 // ============================================================
 
 export const getProductBySlug = unstable_cache(async (slug: string, locale: string) => {
+  return safeQuery(async () => {
   const rows = await db.$queryRaw<Array<{
     id: string;
     slug: string;
@@ -903,6 +955,7 @@ export const getProductBySlug = unstable_cache(async (slug: string, locale: stri
       ? { slug: product.categorySlug, name: product.categoryName || '' }
       : null,
   };
+  }, null, 'getProductBySlug');
 }, ['amira-product-by-slug-v3'], { revalidate: 1, tags: ['amira-products'] });
 
 // ============================================================
@@ -910,6 +963,7 @@ export const getProductBySlug = unstable_cache(async (slug: string, locale: stri
 // ============================================================
 
 export const getRelatedProducts = unstable_cache(async (productId: string, locale: string, limit: number = 6) => {
+  return safeQuery(async () => {
   const rows = await db.$queryRaw<Array<{
     id: string;
     slug: string;
@@ -1013,4 +1067,5 @@ export const getRelatedProducts = unstable_cache(async (productId: string, local
     reviewCount: p.reviewCount,
     avgRating: p.avgRating ?? 0,
   }));
+  }, [], 'getRelatedProducts');
 }, ['amira-related-products-v3'], { revalidate: 1, tags: ['amira-products'] });

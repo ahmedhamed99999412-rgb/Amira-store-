@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, User, Heart, ShoppingBag, Menu, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,61 @@ type Category = {
   children: { id: string; slug: string; name: string }[];
 };
 
+// useSearchParams() opts its subtree out of static rendering and requires a
+// Suspense boundary above it (Next.js "missing-suspense-with-csr-bailout"),
+// otherwise the build fails / hydration can throw. Header is rendered
+// unwrapped on every page, so the search-params dependency is isolated to
+// this tiny leaf (rendered null) and wrapped in <Suspense fallback={null}>
+// by Header itself, rather than requiring every call site to remember to
+// wrap it.
+function HeaderRouteChangeWatcher({
+  pathname,
+  onRouteChange,
+}: {
+  pathname: string;
+  onRouteChange: () => void;
+}) {
+  const searchParams = useSearchParams();
+  const searchKey = searchParams.toString();
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(onRouteChange, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [pathname, searchKey]);
+
+  return null;
+}
+
+// The "Sale" nav link's active/highlighted state depends on the `sale`
+// query param, which requires useSearchParams() at render time (not just in
+// an effect). Isolated here so only this leaf needs the Suspense boundary;
+// the fallback renders the identical link markup (just without the active
+// styling) so there is no layout shift while it resolves.
+function SaleNavLink({ pathname, t }: { pathname: string; t: (key: string) => string }) {
+  const searchParams = useSearchParams();
+  const isActive = pathname === '/shop' && searchParams.get('sale') === 'true';
+  return (
+    <Link
+      href="/shop?sale=true"
+      className={`text-xs font-semibold tracking-wider uppercase text-red-600 hover:text-red-700 transition-colors py-2 inline-block ${isActive ? 'text-red-700 font-bold' : ''}`}
+      aria-current={isActive ? 'page' : undefined}
+    >
+      {t('nav.sale')}
+    </Link>
+  );
+}
+
+function SaleNavLinkFallback({ t }: { t: (key: string) => string }) {
+  return (
+    <Link
+      href="/shop?sale=true"
+      className="text-xs font-semibold tracking-wider uppercase text-red-600 hover:text-red-700 transition-colors py-2 inline-block"
+    >
+      {t('nav.sale')}
+    </Link>
+  );
+}
+
 export function Header({
   categories,
   locale,
@@ -53,7 +108,6 @@ export function Header({
     s.items.reduce((sum, item) => sum + item.quantity, 0)
   );
   const wishlistCount = useWishlistStore((s) => s.items.length);
-  const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -76,13 +130,10 @@ export function Header({
     return () => window.clearTimeout(timeoutId);
   }, [locale, pathname, router]);
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setMobileOpen(false);
-      setMobileSearchOpen(false);
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [pathname, searchParams.toString()]);
+  function closeMobileMenus() {
+    setMobileOpen(false);
+    setMobileSearchOpen(false);
+  }
 
   function switchLocale() {
     const newLocale = locale === 'ar' ? 'en' : 'ar';
@@ -105,6 +156,9 @@ export function Header({
 
   return (
     <header className="bg-white border-b border-border sticky top-0 z-40">
+      <Suspense fallback={null}>
+        <HeaderRouteChangeWatcher pathname={pathname} onRouteChange={closeMobileMenus} />
+      </Suspense>
       {/* Announcement bar */}
       <div className="bg-brand-mauve text-white text-xs sm:text-sm">
         <div className="container mx-auto px-4 py-2 flex items-center justify-between gap-4">
@@ -180,7 +234,9 @@ export function Header({
 
           {/* Search (desktop) */}
           <div className="hidden md:flex flex-1 max-w-xl mx-4">
-            <SearchBox locale={locale} variant="desktop" />
+            <Suspense fallback={null}>
+              <SearchBox locale={locale} variant="desktop" />
+            </Suspense>
           </div>
 
           {/* Mobile search toggle */}
@@ -276,7 +332,9 @@ export function Header({
         {/* Search (mobile) - expandable panel */}
         {mobileSearchOpen && (
           <div className="md:hidden pb-3 animate-in fade-in slide-in-from-top-2 duration-200">
-            <SearchBox locale={locale} variant="mobile" />
+            <Suspense fallback={null}>
+              <SearchBox locale={locale} variant="mobile" />
+            </Suspense>
           </div>
         )}
       </div>
@@ -314,13 +372,9 @@ export function Header({
                   </li>
                 ))}
             <li>
-              <Link
-                href="/shop?sale=true"
-                className={`text-xs font-semibold tracking-wider uppercase text-red-600 hover:text-red-700 transition-colors py-2 inline-block ${pathname === '/shop' && searchParams.get('sale') === 'true' ? 'text-red-700 font-bold' : ''}`}
-                aria-current={pathname === '/shop' && searchParams.get('sale') === 'true' ? 'page' : undefined}
-              >
-                {t('nav.sale')}
-              </Link>
+              <Suspense fallback={<SaleNavLinkFallback t={t} />}>
+                <SaleNavLink pathname={pathname} t={t} />
+              </Suspense>
             </li>
           </ul>
         </div>

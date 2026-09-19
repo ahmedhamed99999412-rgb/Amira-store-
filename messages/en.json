@@ -149,7 +149,8 @@
     "reviewFormRequired": "Please fill all fields",
     "viewOptions": "Choose options",
     "chooseSize": "Choose size",
-    "chooseColor": "Choose color"
+    "chooseColor": "Choose color",
+    "chooseSizeAndColor": "Choose size & color"
   },
   "cart": {
     "title": "Shopping Cart",

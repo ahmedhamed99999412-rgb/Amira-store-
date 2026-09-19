@@ -207,7 +207,17 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
           style={{ backgroundColor: '#1A1A1A', color: '#FFFFFF' }}
         >
           <ShoppingBag className="h-4 w-4 shrink-0" />
-          <span className="truncate">{product.hasVariants ? (product.hasSizeVariants ? t('chooseSize') : product.hasColorVariants ? t('chooseColor') : t('viewOptions')) : t('addToCart')}</span>
+          <span className="truncate">
+            {product.hasVariants
+              ? product.hasSizeVariants && product.hasColorVariants
+                ? t('chooseSizeAndColor')
+                : product.hasSizeVariants
+                ? t('chooseSize')
+                : product.hasColorVariants
+                ? t('chooseColor')
+                : t('viewOptions')
+              : t('addToCart')}
+          </span>
         </button>
       ) : (
         <div className="w-full h-10 sm:h-11 mt-2 px-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center rounded-md bg-muted text-muted-foreground shrink-0">

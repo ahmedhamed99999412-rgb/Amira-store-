@@ -149,7 +149,8 @@
     "reviewFormRequired": "يرجى ملء جميع الحقول",
     "viewOptions": "اختيار المقاسات والألوان",
     "chooseSize": "اختار المقاس",
-    "chooseColor": "اختار اللون"
+    "chooseColor": "اختار اللون",
+    "chooseSizeAndColor": "اختار المقاس واللون"
   },
   "cart": {
     "title": "سلة التسوق",
