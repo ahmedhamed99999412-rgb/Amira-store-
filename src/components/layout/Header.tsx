@@ -54,6 +54,7 @@ function HeaderRouteChangeWatcher({
   useEffect(() => {
     const timeoutId = window.setTimeout(onRouteChange, 0);
     return () => window.clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchKey]);
 
   return null;
