@@ -8,7 +8,7 @@ import { Minus, Plus, ShoppingCart, Heart, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCartStore } from '@/store/cart-store';
 import { useWishlistStore } from '@/store/wishlist-store';
-import { getLowestVariantCardPricing, normalizeVariantPricing } from '@/lib/product-variants';
+import { getLowestVariantCardPricing, normalizeVariantPricing, pickDefaultVariantId } from '@/lib/product-variants';
 
 export type ProductDetail = {
   id: string;
@@ -56,7 +56,10 @@ export function ProductDetailClient({
   const isInWishlist = useWishlistStore((s) => s.hasItem);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-    product.variants.find((v) => v.stock > 0)?.id ?? product.variants[0]?.id ?? null
+    // Default to the same variant that determines the "starting at" price
+    // already shown on the product card — never a random/first-in-array
+    // pick — so the price never changes just from opening the page.
+    () => pickDefaultVariantId(product.variants) ?? product.variants[0]?.id ?? null
   );
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);

@@ -87,6 +87,48 @@ export function productNeedsVariantSelection(
   return variants.some((v) => v.size != null || v.color != null);
 }
 
+/**
+ * Picks which variant should be selected by default when a product page
+ * loads, so the price shown there always matches the "starting at" price
+ * already shown on the product card (getLowestVariantCardPricing) instead
+ * of whatever happens to be first in array order. Prefers in-stock
+ * variants; among those (or among all variants if none are in stock),
+ * picks the lowest effective price (sale price if set, else regular
+ * price, plus any price adjustment). Ties keep the earlier variant so the
+ * result is stable/deterministic — never random.
+ */
+export function pickDefaultVariantId<
+  V extends {
+    id: string;
+    stock: number;
+    regularPrice: number | null;
+    salePrice: number | null;
+    priceAdjustment?: number | null;
+  }
+>(variants: ReadonlyArray<V>): string | null {
+  if (variants.length === 0) return null;
+
+  const inStock = variants.filter((v) => v.stock > 0);
+  const candidates = inStock.length > 0 ? inStock : variants;
+
+  const effectivePrice = (v: V): number => {
+    const base = v.salePrice ?? v.regularPrice;
+    if (base === null || base === undefined) return Number.POSITIVE_INFINITY;
+    return base + (v.priceAdjustment ?? 0);
+  };
+
+  let best = candidates[0];
+  let bestPrice = effectivePrice(best);
+  for (let i = 1; i < candidates.length; i++) {
+    const price = effectivePrice(candidates[i]);
+    if (price < bestPrice) {
+      best = candidates[i];
+      bestPrice = price;
+    }
+  }
+  return best.id;
+}
+
 function toNumberOrNull(value: unknown): number | null {
   if (value === null || value === undefined) return null;
   if (typeof value === 'number') return value;

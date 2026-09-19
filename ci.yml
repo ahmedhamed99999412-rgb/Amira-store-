@@ -67,7 +67,7 @@ jobs:
           --health-timeout 5s
           --health-retries 12
     env:
-      DATABASE_URL: [REDACTED-SECRET]
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/amira_ci?schema=public
 
     steps:
       - name: Checkout

@@ -39,6 +39,17 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
   const addItemToCart = useCartStore((s) => s.addItem);
   const router = useRouter();
 
+  // `product.hasVariants` is a denormalized column that can drift out of
+  // sync with the product's actual variant rows (e.g. an admin adds sizes
+  // to an existing product without re-saving the top-level flag). Every
+  // real product also carries one placeholder variant row for stock
+  // tracking even when it has no selectable options, so a bare variant
+  // count isn't reliable either. Whether a size/color was actually set on
+  // at least one variant is the only signal that can't drift — it's
+  // recomputed live everywhere the data comes from, so this is the one
+  // source of truth for "does this product need a variant picker".
+  const needsVariantSelection = Boolean(product.hasSizeVariants || product.hasColorVariants);
+
   const displayPrice = product.displayPrice !== null && product.displayPrice !== undefined ? product.displayPrice : product.minVariantSalePrice ?? product.minVariantRegularPrice ?? product.price;
   const displayComparePrice = product.displayComparePrice !== undefined
     ? product.displayComparePrice
@@ -75,7 +86,11 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
         displayPrice,
         displayComparePrice,
         totalStock: product.totalStock,
-        hasVariants: product.hasVariants,
+        hasVariants: needsVariantSelection,
+        hasSizeVariants: product.hasSizeVariants,
+        hasColorVariants: product.hasColorVariants,
+        minVariantRegularPrice: product.minVariantRegularPrice,
+        minVariantSalePrice: product.minVariantSalePrice,
         reviewCount: product.reviewCount,
         avgRating: product.avgRating,
       });
@@ -90,7 +105,7 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
     e.stopPropagation();
     if (!inStock) return;
 
-    if (product.hasVariants) {
+    if (needsVariantSelection) {
       router.push(`/product/${product.slug}`);
       return;
     }
@@ -208,14 +223,12 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
         >
           <ShoppingBag className="h-4 w-4 shrink-0" />
           <span className="truncate">
-            {product.hasVariants
+            {needsVariantSelection
               ? product.hasSizeVariants && product.hasColorVariants
                 ? t('chooseSizeAndColor')
                 : product.hasSizeVariants
                 ? t('chooseSize')
-                : product.hasColorVariants
-                ? t('chooseColor')
-                : t('viewOptions')
+                : t('chooseColor')
               : t('addToCart')}
           </span>
         </button>

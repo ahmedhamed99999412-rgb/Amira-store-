@@ -13,8 +13,12 @@ type WishlistItem = {
   comparePrice?: number | null;
   displayPrice?: number;
   displayComparePrice?: number | null;
+  minVariantRegularPrice?: number | null;
+  minVariantSalePrice?: number | null;
   totalStock?: number;
   hasVariants?: boolean;
+  hasSizeVariants?: boolean;
+  hasColorVariants?: boolean;
   reviewCount?: number;
   avgRating?: number;
   variantId?: string | null;
@@ -69,8 +73,12 @@ function normalizeWishlistItems(items: ServerWishlistItem[] | null | undefined):
       comparePrice: typeof item.comparePrice === 'number' ? item.comparePrice : null,
       displayPrice: typeof item.displayPrice === 'number' ? item.displayPrice : undefined,
       displayComparePrice: typeof item.displayComparePrice === 'number' ? item.displayComparePrice : null,
+      minVariantRegularPrice: typeof item.minVariantRegularPrice === 'number' ? item.minVariantRegularPrice : null,
+      minVariantSalePrice: typeof item.minVariantSalePrice === 'number' ? item.minVariantSalePrice : null,
       totalStock: typeof item.totalStock === 'number' ? item.totalStock : undefined,
       hasVariants: typeof item.hasVariants === 'boolean' ? item.hasVariants : undefined,
+      hasSizeVariants: typeof item.hasSizeVariants === 'boolean' ? item.hasSizeVariants : undefined,
+      hasColorVariants: typeof item.hasColorVariants === 'boolean' ? item.hasColorVariants : undefined,
       reviewCount: typeof item.reviewCount === 'number' ? item.reviewCount : undefined,
       avgRating: typeof item.avgRating === 'number' ? item.avgRating : undefined,
     }))

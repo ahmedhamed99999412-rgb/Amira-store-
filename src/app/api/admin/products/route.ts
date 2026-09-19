@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/session';
 import { createAdminProductSchema } from '@/lib/validation/admin-product';
 import { apiErrorResponse, getApiLocale, internalServerErrorResponse, safeJsonBody } from '@/lib/api-errors';
+import { productNeedsVariantSelection } from '@/lib/product-variants';
 
 // GET /api/admin/products - List all products
 export async function GET(req: NextRequest) {
@@ -73,7 +74,16 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid product data', details: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
-    const { sku: providedSku, slug: providedSlug, categoryId, price, comparePrice, costPrice, differentPriceBySize, hasVariants, isActive, isFeatured, nameAr, nameEn, shortDescriptionAr, shortDescriptionEn, descriptionAr, descriptionEn, tagsAr, tagsEn, images, variants } = parsed.data;
+    const { sku: providedSku, slug: providedSlug, categoryId, price, comparePrice, costPrice, differentPriceBySize, hasVariants: submittedHasVariants, isActive, isFeatured, nameAr, nameEn, shortDescriptionAr, shortDescriptionEn, descriptionAr, descriptionEn, tagsAr, tagsEn, images, variants } = parsed.data;
+    // `hasVariants` is never trusted from the submitted form value alone —
+    // it is derived from the actual variants being saved in this same
+    // request, so the stored flag can never drift out of sync with reality
+    // the way a manually-toggled checkbox can. `submittedHasVariants` is
+    // intentionally unused below other than to keep it out of `...rest`
+    // spreads; every consumer of "does this product need a variant picker"
+    // (cards, cart API, wishlist) is derived the same way at read time too.
+    void submittedHasVariants;
+    const hasVariants = productNeedsVariantSelection(variants);
     if (comparePrice !== undefined && comparePrice !== null && price !== null && comparePrice <= price) {
       return NextResponse.json({ error: 'Sale price must be lower than regular price' }, { status: 400 });
     }
@@ -137,7 +147,7 @@ export async function POST(req: NextRequest) {
       data: {
         slug, sku, categoryId, price: price ?? 0, comparePrice: comparePrice ?? null,
         differentPriceBySize,
-        costPrice: costPrice ?? null, hasVariants: !!hasVariants,
+        costPrice: costPrice ?? null, hasVariants,
         isActive: isActive !== false, isFeatured: !!isFeatured,
         translations: { create: [{ locale: 'ar', name: nameAr, shortDescription: shortDescriptionAr || null, description: descriptionAr || null }, { locale: 'en', name: nameEn, shortDescription: shortDescriptionEn || null, description: descriptionEn || null }] },
         images: images.length > 0 ? { create: images.map((img, i) => ({ base64Data: img.base64Data, mimeType: img.mimeType, fileSize: img.fileSize || 0, order: i, isPrimary: i === 0 })) } : undefined,

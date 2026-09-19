@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/session';
 import { updateAdminProductSchema } from '@/lib/validation/admin-product';
 import { internalServerErrorResponse, safeJsonBody } from '@/lib/api-errors';
+import { productNeedsVariantSelection } from '@/lib/product-variants';
 
 // GET /api/admin/products/[id]
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -61,7 +62,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         comparePrice: input.comparePrice !== undefined ? input.comparePrice : existing.comparePrice,
         costPrice: input.costPrice !== undefined ? input.costPrice : existing.costPrice,
         differentPriceBySize: input.differentPriceBySize ?? existing.differentPriceBySize,
-        hasVariants: input.hasVariants ?? existing.hasVariants,
         isActive: input.isActive ?? existing.isActive,
         isFeatured: input.isFeatured ?? existing.isFeatured,
       }});
@@ -157,7 +157,26 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           }
         }
       }
+
+      // `hasVariants` must always reflect the product's real variant rows,
+      // never a manually-set form checkbox. Recomputing it here, from
+      // whatever variants actually exist after the block above ran (or
+      // didn't run, if this request didn't touch variants at all), means
+      // it can never silently drift the way it did before — the exact gap
+      // that let a variant-bearing product keep behaving like a simple
+      // product across the cards, the cart API, and the wishlist. This
+      // also self-heals any drift left over from earlier edits, even when
+      // the current request doesn't touch variants at all.
+      const finalVariants = await tx.productVariant.findMany({
+        where: { productId: id },
+        select: { size: true, color: true },
+      });
+      await tx.product.update({
+        where: { id },
+        data: { hasVariants: productNeedsVariantSelection(finalVariants) },
+      });
     });
+    revalidateTag('amira-products');
     revalidatePath('/admin/products', 'page');
     revalidatePath('/', 'layout');
     revalidatePath('/ar', 'page');
@@ -174,6 +193,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     await requireAdmin();
     const { id } = await params;
     await db.product.update({ where: { id }, data: { isDeleted: true, deletedAt: new Date(), isActive: false } });
+    revalidateTag('amira-products');
     revalidatePath('/admin/products', 'page');
     revalidatePath('/', 'layout');
     revalidatePath('/ar', 'page');

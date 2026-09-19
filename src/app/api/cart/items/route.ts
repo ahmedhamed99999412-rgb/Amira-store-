@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/session';
 import { cookies } from 'next/headers';
 import { internalServerErrorResponse, safeJsonBody, apiErrorResponse, getApiLocale } from '@/lib/api-errors';
 import { isUniqueConstraintError } from '@/lib/prisma-errors';
+import { productNeedsVariantSelection } from '@/lib/product-variants';
 
 const MAX_CART_QUANTITY = 100;
 
@@ -83,7 +84,15 @@ export async function POST(req: NextRequest) {
       return apiErrorResponse('PRODUCT_NOT_FOUND', 404, locale);
     }
 
-    if (product.hasVariants && !variantId) {
+    // `product.hasVariants` is a denormalized flag set from an admin form
+    // checkbox and can drift out of sync with the product's real variant
+    // rows (e.g. sizes added to an existing product without re-toggling
+    // it). This is the one place that decides whether a cart line is
+    // allowed to be created without a variant, so it must never trust that
+    // stale column — otherwise a variant-bearing product can be added with
+    // variantId: null, and its price then resolves to the base product's
+    // price column (which is meaningless/0 for a variant-priced product).
+    if (productNeedsVariantSelection(product.variants) && !variantId) {
       return apiErrorResponse('VARIANT_REQUIRED', 400, locale);
     }
 

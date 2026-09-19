@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/session';
 import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 import { internalServerErrorResponse } from '@/lib/api-errors';
-import { getLowestVariantCardPricing, normalizeVariantPricing } from '@/lib/product-variants';
+import { getLowestVariantCardPricing, normalizeVariantPricing, productNeedsVariantSelection } from '@/lib/product-variants';
 
 // GET is intentionally read-only. An empty wishlist should not create a database row
 // on every page load; mutations are responsible for creating the wishlist when needed.
@@ -53,6 +53,15 @@ export async function GET(req: NextRequest) {
           p.comparePrice != null ? (typeof p.comparePrice === 'number' ? p.comparePrice : Number(p.comparePrice)) : null,
           normalizeVariantPricing(p.variants)
         );
+        // Every product has at least one placeholder variant row purely for
+        // stock tracking, even "simple" products with no selectable
+        // options — so `p.variants.length > 0` is true for literally every
+        // product and can't be used to decide whether a picker is needed.
+        // Whether a real size/color was set on at least one variant is the
+        // only signal that matches what the listing pages and the cart API
+        // use, so the wishlist card renders the same CTA as everywhere else.
+        const hasSizeVariants = p.variants.some((v) => v.size != null);
+        const hasColorVariants = p.variants.some((v) => v.color != null);
         return {
           id: p.id,
           productId: p.id,
@@ -71,7 +80,9 @@ export async function GET(req: NextRequest) {
           category: p.category?.translations.find((t) => t.locale === locale)?.name || '',
           image: p.images[0] ? `/api/images/${p.images[0].id}` : null,
           totalStock: p.variants.reduce((sum, v) => sum + v.stock, 0),
-          hasVariants: p.hasVariants || p.variants.length > 0,
+          hasVariants: productNeedsVariantSelection(p.variants),
+          hasSizeVariants,
+          hasColorVariants,
           reviewCount: p.reviews.length,
           avgRating:
             p.reviews.length > 0

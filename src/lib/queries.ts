@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { unstable_cache } from 'next/cache';
-import { resolveDisplayComparePrice } from '@/lib/product-variants';
+import { resolveDisplayComparePrice, productNeedsVariantSelection } from '@/lib/product-variants';
 
 // ============================================================
 // SAFETY GUARD
@@ -261,7 +261,7 @@ const getFeaturedProductsCached = unstable_cache(async (locale: string, limit: n
     category: p.category || '',
     image: p.imageId ? `/api/images/${p.imageId}` : null,
     totalStock: p.totalStock,
-    hasVariants: p.hasVariants,
+    hasVariants: Boolean(p.hasSizeVariants || p.hasColorVariants),
     hasSizeVariants: p.hasSizeVariants,
     hasColorVariants: p.hasColorVariants,
     reviewCount: p.reviewCount,
@@ -506,7 +506,7 @@ const getProductsByCategoryCached = unstable_cache(
         category: p.category || '',
         image: p.imageId ? `/api/images/${p.imageId}` : null,
         totalStock: p.totalStock,
-        hasVariants: p.hasVariants,
+        hasVariants: Boolean(p.hasSizeVariants || p.hasColorVariants),
         hasSizeVariants: p.hasSizeVariants,
         hasColorVariants: p.hasColorVariants,
         minVariantRegularPrice: p.minVariantRegularPrice,
@@ -681,7 +681,7 @@ const getAllProductsCached = unstable_cache(
         category: p.category || '',
         image: p.imageId ? `/api/images/${p.imageId}` : null,
         totalStock: p.totalStock,
-        hasVariants: p.hasVariants,
+        hasVariants: Boolean(p.hasSizeVariants || p.hasColorVariants),
         hasSizeVariants: p.hasSizeVariants,
         hasColorVariants: p.hasColorVariants,
         minVariantRegularPrice: p.minVariantRegularPrice,
@@ -920,7 +920,7 @@ export const getProductBySlug = unstable_cache(async (slug: string, locale: stri
     ),
     differentPriceBySize: product.differentPriceBySize,
     costPrice: product.costPrice,
-    hasVariants: product.hasVariants,
+    hasVariants: productNeedsVariantSelection(rawVariants),
     isFeatured: product.isFeatured,
     name: product.name,
     shortDescription: product.shortDescription,
@@ -1059,7 +1059,7 @@ export const getRelatedProducts = unstable_cache(async (productId: string, local
     category: p.category || '',
     image: p.imageId ? `/api/images/${p.imageId}` : null,
     totalStock: p.totalStock,
-    hasVariants: p.hasVariants,
+    hasVariants: Boolean(p.hasSizeVariants || p.hasColorVariants),
     hasSizeVariants: p.hasSizeVariants,
     hasColorVariants: p.hasColorVariants,
     minVariantRegularPrice: p.minVariantRegularPrice,
