@@ -162,8 +162,8 @@ const getHeroBannersCached = unstable_cache(
     },
     orderBy: { order: 'asc' },
   }),
-  ['amira-hero-banners-v1'],
-  { revalidate: 60 }
+  ['amira-hero-banners-v2'],
+  { revalidate: 60, tags: ['amira-hero-banners'] }
 );
 
 export async function getHeroBanners() {
@@ -180,8 +180,8 @@ const getPromoBannersCached = unstable_cache(
     },
     orderBy: { order: 'asc' },
   }),
-  ['amira-promo-banners-v1'],
-  { revalidate: 60 }
+  ['amira-promo-banners-v2'],
+  { revalidate: 60, tags: ['amira-promo-banners'] }
 );
 
 export async function getPromoBanners() {
