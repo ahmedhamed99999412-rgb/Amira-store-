@@ -1,41 +1,25 @@
-AMIRA STORE — Corrected Banner Image Fix
+AMIRA STORE — BANNER IMAGE FIX (FINAL)
 
-IMPORTANT:
-This is a SMALL SOURCE PATCH, not a full-project replacement ZIP.
-Do NOT upload this ZIP as the whole repository.
+FIX-ONLY patch. This archive is NOT the full project.
 
-Apply it from the root of the existing Amira-store repository in Codespaces:
+It fixes two confirmed risks together:
+1) Bumps hero/promo unstable_cache keys from v1 to v2 so stale banner records/IDs cannot be reused by the same cache key.
+2) Replaces next/image rendering for Hero + Promo banners with direct /api/images URLs, avoiding the image optimizer path.
+3) Keeps the updatedAt query-string cache buster.
+4) Changes exactly these files: src/lib/queries.ts, src/components/home/HeroCarousel.tsx, src/components/home/PromoBanners.tsx
+5) Does not touch Neon, Prisma schema, migrations, seeds, or data.
 
-  unzip -q /path/to/Amira-store-BANNER-IMAGE-FIX-CORRECTED.zip -d /tmp/amira-banner-fix
-  python3 /tmp/amira-banner-fix/banner-fix/fix-banner-images.py
+Apply from the project root:
+  bash /path/to/Amira-store-BANNER-FIX/apply-fix.sh
 
-The script automatically finds the Git repository root by walking upward from
-whatever directory you run it from. It updates ONLY:
+Or specify the project path:
+  bash /path/to/Amira-store-BANNER-FIX/apply-fix.sh /workspaces/Amira-store-
 
-  src/components/home/HeroCarousel.tsx
-  src/components/home/PromoBanners.tsx
-
-What it changes:
-- replaces the homepage Hero/Promo next/image rendering with direct <img>
-- keeps the existing /api/images/<id>?v=<updatedAt> URL
-- adds async image decoding
-- keeps eager loading for the first hero and lazy loading for the rest
-- makes no database changes
-
-Then verify:
-
+Then:
   git diff --check
-  git diff -- src/components/home/HeroCarousel.tsx src/components/home/PromoBanners.tsx
-
-Then commit and push:
-
-  git add src/components/home/HeroCarousel.tsx src/components/home/PromoBanners.tsx
-  git commit -m "Fix homepage banner image rendering"
+  git diff -- src/lib/queries.ts src/components/home/HeroCarousel.tsx src/components/home/PromoBanners.tsx
+  git add src/lib/queries.ts src/components/home/HeroCarousel.tsx src/components/home/PromoBanners.tsx
+  git commit -m "Fix banner image loading and stale banner cache"
   git push origin main
 
-Do NOT run:
-- prisma migrate
-- prisma db push
-- db:seed
-- db:reset
-- any Neon data write
+Do not run any database migration/seed/reset command for this fix.
