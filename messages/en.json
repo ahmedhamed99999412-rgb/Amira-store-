@@ -83,7 +83,8 @@
     "beauty": "BEAUTY",
     "fragrance": "FRAGRANCE",
     "sale": "SALE",
-    "newIn": "NEW IN"
+    "newIn": "NEW IN",
+    "main": "Main navigation"
   },
   "hero": {
     "kicker": "NEW SEASON",
