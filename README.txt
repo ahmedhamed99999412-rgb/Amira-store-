@@ -1,25 +1,42 @@
-AMIRA STORE — BANNER IMAGE FIX (FINAL)
+AMIRA STORE — FINAL BANNER CACHE FIX
 
-FIX-ONLY patch. This archive is NOT the full project.
+This is a FIX-ONLY package. It is NOT the full project.
 
-It fixes two confirmed risks together:
-1) Bumps hero/promo unstable_cache keys from v1 to v2 so stale banner records/IDs cannot be reused by the same cache key.
-2) Replaces next/image rendering for Hero + Promo banners with direct /api/images URLs, avoiding the image optimizer path.
-3) Keeps the updatedAt query-string cache buster.
-4) Changes exactly these files: src/lib/queries.ts, src/components/home/HeroCarousel.tsx, src/components/home/PromoBanners.tsx
-5) Does not touch Neon, Prisma schema, migrations, seeds, or data.
+ROOT CAUSE CONFIRMED:
+The admin banner API invalidates these cache tags:
+  amira-hero-banners
+  amira-promo-banners
 
-Apply from the project root:
-  bash /path/to/Amira-store-BANNER-FIX/apply-fix.sh
+But the cached homepage banner queries were not tagged with those tags.
+The same cache key could therefore keep old banner records/IDs, while the
+current Neon database contains newer banner IDs. The old image IDs then return
+404 from /api/images/[id].
 
-Or specify the project path:
-  bash /path/to/Amira-store-BANNER-FIX/apply-fix.sh /workspaces/Amira-store-
+THIS FIX:
+- bumps the hero/promo cache keys from v1 to v2 (one-time stale-cache escape)
+- attaches the matching cache tags so future admin banner changes invalidate
+  the cached queries correctly
+- changes ONLY src/lib/queries.ts
+- makes NO Neon/Prisma/database changes
 
-Then:
-  git diff --check
-  git diff -- src/lib/queries.ts src/components/home/HeroCarousel.tsx src/components/home/PromoBanners.tsx
-  git add src/lib/queries.ts src/components/home/HeroCarousel.tsx src/components/home/PromoBanners.tsx
-  git commit -m "Fix banner image loading and stale banner cache"
-  git push origin main
+HOW TO APPLY IN CODESPACES:
+1. Upload this ZIP into the existing /workspaces/Amira-store- project.
+2. Open the terminal at the project root.
+3. Run:
 
-Do not run any database migration/seed/reset command for this fix.
+   unzip -q Amira-store-BANNER-CACHE-FIX-FINAL.zip -d /tmp/amira-banner-fix-final
+   bash /tmp/amira-banner-fix-final/apply-banner-fix.sh
+
+4. Confirm the diff is only src/lib/queries.ts.
+5. Commit and push:
+
+   git add src/lib/queries.ts
+   git commit -m "Fix banner cache invalidation"
+   git push origin main
+
+DO NOT run Prisma migrations, db push, seed, reset, or any Neon write.
+
+IMPORTANT:
+Do not use GitHub's "Add files" page to upload the ZIP as a repository file.
+The ZIP must be extracted in the existing project so the script edits the real
+src/lib/queries.ts file.
