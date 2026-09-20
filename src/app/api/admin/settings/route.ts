@@ -1,0 +1,91 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { db } from '@/lib/db';
+import { requireAdmin } from '@/lib/session';
+import { internalServerErrorResponse, safeJsonBody } from '@/lib/api-errors';
+import { adminSettingsSchema } from '@/lib/validation/admin-settings';
+
+// GET /api/admin/settings
+export async function GET() {
+  try {
+    await requireAdmin();
+    const settings = await db.storeSettings.findUnique({ where: { id: 'singleton' } });
+    if (!settings) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return NextResponse.json({ settings });
+  } catch (e: unknown) {
+    if (e instanceof Error && (e.message === 'UNAUTHORIZED' || e.message === 'FORBIDDEN')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    return internalServerErrorResponse();
+  }
+}
+
+// PUT /api/admin/settings
+export async function PUT(req: NextRequest) {
+  try {
+    await requireAdmin();
+    const body = await safeJsonBody(req);
+    const parsed = adminSettingsSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid settings data', issues: parsed.error.issues.map((issue) => ({ path: issue.path, message: issue.message })) },
+        { status: 400 }
+      );
+    }
+
+    const {
+      whatsappNumber,
+      instagramUrl,
+      facebookUrl,
+      storeNameAr,
+      storeNameEn,
+      email,
+      addressAr,
+      addressEn,
+      currency,
+      announcementAr,
+      announcementEn,
+    } = parsed.data;
+
+    const settings = await db.storeSettings.upsert({
+      where: { id: 'singleton' },
+      update: {
+        whatsappNumber,
+        instagramUrl: instagramUrl !== undefined ? instagramUrl || null : undefined,
+        facebookUrl: facebookUrl !== undefined ? facebookUrl || null : undefined,
+        storeNameAr,
+        storeNameEn,
+        email: email !== undefined ? email || null : undefined,
+        addressAr: addressAr !== undefined ? addressAr || null : undefined,
+        addressEn: addressEn !== undefined ? addressEn || null : undefined,
+        currency,
+        announcementAr: announcementAr !== undefined ? announcementAr : undefined,
+        announcementEn: announcementEn !== undefined ? announcementEn : undefined,
+      },
+      create: {
+        id: 'singleton',
+        whatsappNumber,
+        instagramUrl: instagramUrl || null,
+        facebookUrl: facebookUrl || null,
+        storeNameAr,
+        storeNameEn,
+        email: email || null,
+        addressAr: addressAr || null,
+        addressEn: addressEn || null,
+        currency,
+        announcementAr: announcementAr || '',
+        announcementEn: announcementEn || '',
+      },
+    });
+
+    revalidateTag('amira-store-settings', { expire: 0 });
+    revalidatePath('/ar', 'page');
+    revalidatePath('/en', 'page');
+    return NextResponse.json({ settings, ok: true });
+  } catch (e: unknown) {
+    if (e instanceof Error && (e.message === 'UNAUTHORIZED' || e.message === 'FORBIDDEN')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    return internalServerErrorResponse();
+  }
+}

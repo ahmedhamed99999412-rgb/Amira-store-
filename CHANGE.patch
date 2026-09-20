@@ -1,0 +1,13 @@
+diff --git a/tests/money.test.ts b/tests/money.test.ts
+--- a/tests/money.test.ts
++++ b/tests/money.test.ts
+@@
+-import { addMoney, clampMoney, multiplyMoney, percentageMoney, roundMoney, subtractMoney } from '../src/lib/money.ts';
++import { addMoney, clampMoney, multiplyMoney, percentageMoney, roundMoney, subtractMoney } from '../src/lib/money';
+
+diff --git a/tests/order-stock.test.ts b/tests/order-stock.test.ts
+--- a/tests/order-stock.test.ts
++++ b/tests/order-stock.test.ts
+@@
+-import { parseStockAllocation } from '../src/lib/order-stock.ts';
++import { parseStockAllocation } from '../src/lib/order-stock';
