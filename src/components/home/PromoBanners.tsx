@@ -34,6 +34,7 @@ export function PromoBanners({ banners, locale }: { banners: PromoBanner[]; loca
                 className="relative h-[300px] sm:h-[400px] rounded-lg overflow-hidden group"
               >
                 <Image
+  unoptimized
                   src={`/api/images/${banner.id}?v=${banner.updatedAt instanceof Date ? banner.updatedAt.getTime() : new Date(banner.updatedAt || 0).getTime()}`}
                   alt={title || ''}
                   fill

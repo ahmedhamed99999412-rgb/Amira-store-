@@ -65,6 +65,7 @@ export function HeroCarousel({ banners, locale }: { banners: HeroBanner[]; local
               {/* Background image */}
               <div className="absolute inset-0">
                 <Image
+  unoptimized
                   src={`/api/images/${banner.id}?v=${banner.updatedAt instanceof Date ? banner.updatedAt.getTime() : new Date(banner.updatedAt || 0).getTime()}`}
                   alt={title || ''}
                   fill
